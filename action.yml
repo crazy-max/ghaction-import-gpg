@@ -3,8 +3,8 @@ name: 'Import GPG'
 description: 'GitHub Action to easily import your GPG key to sign commits and tags'
 author: 'crazy-max'
 branding:
-  color: 'green'
-  icon: 'key'
+  color: 'yellow'
+  icon: 'lock'
 
 runs:
   using: 'node12'
