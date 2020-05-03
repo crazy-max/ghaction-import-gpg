@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v1
+        uses: crazy-max/ghaction-import-gpg@master
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 ```
@@ -43,7 +43,7 @@ Following environment variables can be used as `step.env` keys
 
 | Name           | Description                           |
 |----------------|---------------------------------------|
-| `SIGNING_KEY`  | GPG private key exported as an ASCII armored version provided by `secrets` |
+| `SIGNING_KEY`  | GPG private key exported as an ASCII armored version |
 
 ## How can I help?
 
