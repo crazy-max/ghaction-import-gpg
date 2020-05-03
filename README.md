@@ -10,6 +10,8 @@ GitHub Action to easily import your GPG key to sign commits and tags.
 
 If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitHub Actions!
 
+![Import GPG key](.res/ghaction-import-gpg.png)
+
 ## Usage
 
 ```yaml
@@ -28,10 +30,20 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@master
+        uses: crazy-max/ghaction-import-gpg@v1
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
 ```
+
+## Customizing
+
+### environment variables
+
+Following environment variables can be used as `step.env` keys
+
+| Name           | Description                           |
+|----------------|---------------------------------------|
+| `SIGNING_KEY`  | GPG private key exported as an ASCII armored version |
 
 ## How can I help?
 
