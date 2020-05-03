@@ -1,9 +1,7 @@
 import * as core from '@actions/core';
 import {deleteKey, importKey} from './gpg';
-import {PrivateKey, readPrivateKey} from './openpgp';
+import {readPrivateKey} from './openpgp';
 import * as stateHelper from './state-helper';
-
-let privateKey: PrivateKey | undefined;
 
 async function run(): Promise<void> {
   try {
@@ -16,7 +14,7 @@ async function run(): Promise<void> {
     core.debug(`PASSPHRASE: ${process.env.PASSPHRASE}`);
 
     core.info('🔮 Checking signing key...');
-    privateKey = await readPrivateKey(process.env.SIGNING_KEY);
+    const privateKey = await readPrivateKey(process.env.SIGNING_KEY);
     core.debug(`key.fingerprint=${privateKey.fingerprint}`);
     core.debug(`key.keyID=${privateKey.keyID}`);
     core.debug(`key.userID=${privateKey.userID}`);
@@ -30,12 +28,13 @@ async function run(): Promise<void> {
 }
 
 async function cleanup(): Promise<void> {
-  if (!privateKey) {
+  if (!process.env.SIGNING_KEY) {
     core.debug('Private key is not defined. Skipping cleanup.');
     return;
   }
   try {
     core.info('🚿 Removing keys from GnuPG...');
+    const privateKey = await readPrivateKey(process.env.SIGNING_KEY);
     await deleteKey(privateKey.fingerprint);
   } catch (error) {
     core.warning(error.message);

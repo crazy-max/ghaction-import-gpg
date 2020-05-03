@@ -111,7 +111,6 @@ const core = __importStar(__webpack_require__(470));
 const gpg_1 = __webpack_require__(207);
 const openpgp_1 = __webpack_require__(781);
 const stateHelper = __importStar(__webpack_require__(153));
-let privateKey;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -122,7 +121,7 @@ function run() {
             core.debug(`SIGNING_KEY: ${process.env.SIGNING_KEY}`);
             core.debug(`PASSPHRASE: ${process.env.PASSPHRASE}`);
             core.info('🔮 Checking signing key...');
-            privateKey = yield openpgp_1.readPrivateKey(process.env.SIGNING_KEY);
+            const privateKey = yield openpgp_1.readPrivateKey(process.env.SIGNING_KEY);
             core.debug(`key.fingerprint=${privateKey.fingerprint}`);
             core.debug(`key.keyID=${privateKey.keyID}`);
             core.debug(`key.userID=${privateKey.userID}`);
@@ -137,12 +136,13 @@ function run() {
 }
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!privateKey) {
+        if (!process.env.SIGNING_KEY) {
             core.debug('Private key is not defined. Skipping cleanup.');
             return;
         }
         try {
             core.info('🚿 Removing keys from GnuPG...');
+            const privateKey = yield openpgp_1.readPrivateKey(process.env.SIGNING_KEY);
             yield gpg_1.deleteKey(privateKey.fingerprint);
         }
         catch (error) {
