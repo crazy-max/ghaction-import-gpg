@@ -126,7 +126,7 @@ function run() {
             core.debug(`key.fingerprint=${privateKey.fingerprint}`);
             core.debug(`key.keyID=${privateKey.keyID}`);
             core.debug(`key.userID=${privateKey.userID}`);
-            core.debug(`key.creationTime: ${privateKey.creationTime}`);
+            core.debug(`key.creationTime=${privateKey.creationTime}`);
             core.info('🔑 Importing secret key...');
             yield gpg_1.importKey(process.env.SIGNING_KEY);
         }
@@ -138,6 +138,7 @@ function run() {
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
         if (!privateKey) {
+            core.debug('Private key is not defined. Skipping cleanup.');
             return;
         }
         try {

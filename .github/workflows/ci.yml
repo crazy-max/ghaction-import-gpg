@@ -24,5 +24,4 @@ jobs:
         name: Import GPG key
         uses: ./
         env:
-          ACTIONS_STEP_DEBUG: ${{ secrets.ACTIONS_STEP_DEBUG }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY_TEST }}

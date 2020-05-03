@@ -20,7 +20,7 @@ async function run(): Promise<void> {
     core.debug(`key.fingerprint=${privateKey.fingerprint}`);
     core.debug(`key.keyID=${privateKey.keyID}`);
     core.debug(`key.userID=${privateKey.userID}`);
-    core.debug(`key.creationTime: ${privateKey.creationTime}`);
+    core.debug(`key.creationTime=${privateKey.creationTime}`);
 
     core.info('🔑 Importing secret key...');
     await importKey(process.env.SIGNING_KEY);
@@ -31,6 +31,7 @@ async function run(): Promise<void> {
 
 async function cleanup(): Promise<void> {
   if (!privateKey) {
+    core.debug('Private key is not defined. Skipping cleanup.');
     return;
   }
   try {
