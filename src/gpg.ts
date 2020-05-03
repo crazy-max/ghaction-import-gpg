@@ -1,5 +1,7 @@
-import {unlinkSync, writeFileSync} from 'fs';
-import child_process from 'child_process';
+import * as child_process from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 export interface Version {
   gnupg: string;
@@ -37,11 +39,12 @@ export const getVersion = async (): Promise<Version> => {
 };
 
 export const importKey = async (armoredText: string): Promise<void> => {
-  const keyPath: string = `${process.env.HOME}/key.pgp`;
-  writeFileSync(keyPath, armoredText, {mode: 0o600});
+  const keyFolder: string = fs.mkdtempSync(path.join(os.tmpdir(), 'ghaction-import-gpg-'));
+  const keyPath: string = `${keyFolder}/key.pgp`;
+  fs.writeFileSync(keyPath, armoredText, {mode: 0o600});
 
   await gpg(['--import', '--batch', '--yes', keyPath]).finally(() => {
-    unlinkSync(keyPath);
+    fs.unlinkSync(keyPath);
   });
 };
 
