@@ -1,0 +1,27 @@
+name: test
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        # https://github.com/actions/checkout
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Install
+        run: npm ci
+      -
+        name: Build
+        run: npm run build
+      -
+        name: Test
+        run: npm run test

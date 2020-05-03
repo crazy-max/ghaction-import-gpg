@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build
+        run: |
+          npm install
+          npm run build
+      -
+        name: Import GPG key
+        uses: ./
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY_TEST }}
