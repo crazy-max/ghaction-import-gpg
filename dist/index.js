@@ -108,8 +108,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
-const gpg_1 = __webpack_require__(207);
-const openpgp_1 = __webpack_require__(781);
+const gpg = __importStar(__webpack_require__(207));
+const openpgp = __importStar(__webpack_require__(781));
 const stateHelper = __importStar(__webpack_require__(153));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -118,16 +118,18 @@ function run() {
                 core.setFailed('Signing key required');
                 return;
             }
-            core.debug(`SIGNING_KEY: ${process.env.SIGNING_KEY}`);
-            core.debug(`PASSPHRASE: ${process.env.PASSPHRASE}`);
+            core.info('📣 GnuPG info');
+            const version = yield gpg.getVersion();
+            core.info(`GnuPG version: ${version.gnupg}`);
+            core.info(`libgcrypt version: ${version.libgcrypt}`);
             core.info('🔮 Checking signing key...');
-            const privateKey = yield openpgp_1.readPrivateKey(process.env.SIGNING_KEY);
+            const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
             core.debug(`key.fingerprint=${privateKey.fingerprint}`);
             core.debug(`key.keyID=${privateKey.keyID}`);
             core.debug(`key.userID=${privateKey.userID}`);
             core.debug(`key.creationTime=${privateKey.creationTime}`);
             core.info('🔑 Importing secret key...');
-            yield gpg_1.importKey(process.env.SIGNING_KEY);
+            yield gpg.importKey(process.env.SIGNING_KEY);
         }
         catch (error) {
             core.setFailed(error.message);
@@ -142,8 +144,8 @@ function cleanup() {
         }
         try {
             core.info('🚿 Removing keys from GnuPG...');
-            const privateKey = yield openpgp_1.readPrivateKey(process.env.SIGNING_KEY);
-            yield gpg_1.deleteKey(privateKey.fingerprint);
+            const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
+            yield gpg.deleteKey(privateKey.fingerprint);
         }
         catch (error) {
             core.warning(error.message);

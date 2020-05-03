@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
-import {deleteKey, importKey} from './gpg';
-import {readPrivateKey} from './openpgp';
+import * as gpg from './gpg';
+import * as openpgp from './openpgp';
 import * as stateHelper from './state-helper';
 
 async function run(): Promise<void> {
@@ -10,18 +10,20 @@ async function run(): Promise<void> {
       return;
     }
 
-    core.debug(`SIGNING_KEY: ${process.env.SIGNING_KEY}`);
-    core.debug(`PASSPHRASE: ${process.env.PASSPHRASE}`);
+    core.info('📣 GnuPG info');
+    const version = await gpg.getVersion();
+    core.info(`GnuPG version: ${version.gnupg}`);
+    core.info(`libgcrypt version: ${version.libgcrypt}`);
 
     core.info('🔮 Checking signing key...');
-    const privateKey = await readPrivateKey(process.env.SIGNING_KEY);
+    const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
     core.debug(`key.fingerprint=${privateKey.fingerprint}`);
     core.debug(`key.keyID=${privateKey.keyID}`);
     core.debug(`key.userID=${privateKey.userID}`);
     core.debug(`key.creationTime=${privateKey.creationTime}`);
 
     core.info('🔑 Importing secret key...');
-    await importKey(process.env.SIGNING_KEY);
+    await gpg.importKey(process.env.SIGNING_KEY);
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -34,8 +36,8 @@ async function cleanup(): Promise<void> {
   }
   try {
     core.info('🚿 Removing keys from GnuPG...');
-    const privateKey = await readPrivateKey(process.env.SIGNING_KEY);
-    await deleteKey(privateKey.fingerprint);
+    const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
+    await gpg.deleteKey(privateKey.fingerprint);
   } catch (error) {
     core.warning(error.message);
   }
