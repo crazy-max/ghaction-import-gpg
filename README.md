@@ -43,7 +43,7 @@ Following environment variables can be used as `step.env` keys
 
 | Name           | Description                           |
 |----------------|---------------------------------------|
-| `SIGNING_KEY`  | GPG private key exported as an ASCII armored version |
+| `SIGNING_KEY`  | GPG private key exported as an ASCII armored version provided by `secrets` |
 
 ## How can I help?
 
