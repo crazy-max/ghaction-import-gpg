@@ -33,7 +33,7 @@
     "@types/openpgp": "^4.4.10",
     "@zeit/ncc": "^0.22.1",
     "jest": "^25.5.0",
-    "jest-circus": "^25.5.0",
+    "jest-circus": "^25.5.4",
     "jest-runtime": "^25.5.0",
     "prettier": "^2.0.5",
     "ts-jest": "^25.4.0",
