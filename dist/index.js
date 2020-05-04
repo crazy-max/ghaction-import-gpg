@@ -1025,10 +1025,11 @@ function run() {
             core.info('📣 GnuPG info');
             const version = yield gpg.getVersion();
             const dirs = yield gpg.getDirs();
-            core.info(`Version : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
-            core.info(`Homedir : ${dirs.homedir}`);
-            core.info(`Datadir : ${dirs.datadir}`);
-            core.info(`Libdir  : ${dirs.libdir}`);
+            core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
+            core.info(`Libdir     : ${dirs.libdir}`);
+            core.info(`Libexecdir : ${dirs.libexecdir}`);
+            core.info(`Datadir    : ${dirs.datadir}`);
+            core.info(`Homedir    : ${dirs.homedir}`);
             core.info('🔮 Checking signing key...');
             const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
             core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
@@ -1143,11 +1144,15 @@ exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
             throw new Error(res.stderr);
         }
         let libdir = '';
+        let libexecdir = '';
         let datadir = '';
         let homedir = '';
         for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
             if (line.startsWith('libdir:')) {
                 libdir = line.substr('libdir:'.length).replace('%3a', ':').trim();
+            }
+            else if (line.startsWith('libexecdir:')) {
+                libexecdir = line.substr('libexecdir:'.length).replace('%3a', ':').trim();
             }
             else if (line.startsWith('datadir:')) {
                 datadir = line.substr('datadir:'.length).replace('%3a', ':').trim();
@@ -1158,6 +1163,7 @@ exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
         }
         return {
             libdir: path.normalize(libdir),
+            libexecdir: path.normalize(libexecdir),
             datadir: path.normalize(datadir),
             homedir: path.normalize(homedir)
         };

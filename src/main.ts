@@ -13,10 +13,11 @@ async function run(): Promise<void> {
     core.info('📣 GnuPG info');
     const version = await gpg.getVersion();
     const dirs = await gpg.getDirs();
-    core.info(`Version : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
-    core.info(`Homedir : ${dirs.homedir}`);
-    core.info(`Datadir : ${dirs.datadir}`);
-    core.info(`Libdir  : ${dirs.libdir}`);
+    core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
+    core.info(`Libdir     : ${dirs.libdir}`);
+    core.info(`Libexecdir : ${dirs.libexecdir}`);
+    core.info(`Datadir    : ${dirs.datadir}`);
+    core.info(`Homedir    : ${dirs.homedir}`);
 
     core.info('🔮 Checking signing key...');
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);

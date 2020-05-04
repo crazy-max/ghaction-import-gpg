@@ -14,6 +14,7 @@ export interface Version {
 
 export interface Dirs {
   libdir: string;
+  libexecdir: string;
   datadir: string;
   homedir: string;
 }
@@ -51,12 +52,15 @@ export const getDirs = async (): Promise<Dirs> => {
     }
 
     let libdir: string = '';
+    let libexecdir: string = '';
     let datadir: string = '';
     let homedir: string = '';
 
     for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
       if (line.startsWith('libdir:')) {
         libdir = line.substr('libdir:'.length).replace('%3a', ':').trim();
+      } else if (line.startsWith('libexecdir:')) {
+        libexecdir = line.substr('libexecdir:'.length).replace('%3a', ':').trim();
       } else if (line.startsWith('datadir:')) {
         datadir = line.substr('datadir:'.length).replace('%3a', ':').trim();
       } else if (line.startsWith('homedir:')) {
@@ -66,6 +70,7 @@ export const getDirs = async (): Promise<Dirs> => {
 
     return {
       libdir: path.normalize(libdir),
+      libexecdir: path.normalize(libexecdir),
       datadir: path.normalize(datadir),
       homedir: path.normalize(homedir)
     };
