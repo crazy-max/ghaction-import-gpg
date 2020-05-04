@@ -1110,7 +1110,7 @@ const fs = __importStar(__webpack_require__(747));
 const path = __importStar(__webpack_require__(622));
 const os = __importStar(__webpack_require__(87));
 const exec = __importStar(__webpack_require__(807));
-exports.agentConfig = `default-cache-ttl 1
+exports.agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
 allow-preset-passphrase`;
 exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -1199,7 +1199,10 @@ exports.getKeygrip = (fingerprint) => __awaiter(void 0, void 0, void 0, function
     });
 });
 exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
-    const { homedir: homedir } = yield exports.getDirs();
+    let homedir = path.join(process.env.HOME || '', '.gnupg');
+    if (os.platform() == 'win32') {
+        homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
+    }
     const gpgAgentConf = path.join(homedir, 'gpg-agent.conf');
     yield fs.writeFile(gpgAgentConf, config, function (err) {
         if (err)

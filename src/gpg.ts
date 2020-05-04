@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as exec from './exec';
 
-export const agentConfig = `default-cache-ttl 1
+export const agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
 allow-preset-passphrase`;
 
@@ -111,11 +111,16 @@ export const getKeygrip = async (fingerprint: string): Promise<string> => {
 };
 
 export const configureAgent = async (config: string): Promise<void> => {
-  const {homedir: homedir} = await getDirs();
+  let homedir: string = path.join(process.env.HOME || '', '.gnupg');
+  if (os.platform() == 'win32') {
+    homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
+  }
+
   const gpgAgentConf = path.join(homedir, 'gpg-agent.conf');
   await fs.writeFile(gpgAgentConf, config, function (err) {
     if (err) throw err;
   });
+
   await exec.exec(`gpg-connect-agent "RELOADAGENT" /bye`, [], true).then(res => {
     if (res.stderr != '' && !res.success) {
       throw new Error(res.stderr);
