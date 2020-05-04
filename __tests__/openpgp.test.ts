@@ -1,4 +1,4 @@
-import {readPrivateKey, generateKeyPair} from '../src/openpgp';
+import * as openpgp from '../src/openpgp';
 
 const userInfo = {
   name: 'Joe Tester',
@@ -118,7 +118,7 @@ PejgXO0uIRolYQ3sz2tMGhx1MfBqH64=
 describe('openpgp', () => {
   describe('readPrivateKey', () => {
     it('returns a PGP private key', async () => {
-      await readPrivateKey(userInfo.pgp).then(privateKey => {
+      await openpgp.readPrivateKey(userInfo.pgp).then(privateKey => {
         expect(privateKey.keyID).toEqual(userInfo.keyID);
         expect(privateKey.userID).toEqual(userInfo.userID);
         expect(privateKey.fingerprint).toEqual(userInfo.fingerprint);
@@ -128,7 +128,7 @@ describe('openpgp', () => {
 
   describe('generateKeyPair', () => {
     it('generates a PGP key pair', async () => {
-      await generateKeyPair(userInfo.name, userInfo.email, userInfo.passphrase).then(keyPair => {
+      await openpgp.generateKeyPair(userInfo.name, userInfo.email, userInfo.passphrase).then(keyPair => {
         expect(keyPair).not.toBeUndefined();
         expect(keyPair.publicKey).not.toBeUndefined();
         expect(keyPair.privateKey).not.toBeUndefined();

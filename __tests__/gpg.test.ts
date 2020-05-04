@@ -1,5 +1,4 @@
-import {deleteKey, getVersion, importKey} from '../src/gpg';
-import * as child_process from 'child_process';
+import * as gpg from '../src/gpg';
 
 const userInfo = {
   name: 'Joe Tester',
@@ -8,6 +7,7 @@ const userInfo = {
   keyID: 'D523BD50DD70B0BA',
   userID: 'Joe Tester <joe@foo.bar>',
   fingerprint: '27571A53B86AF0C799B38BA77D851EB72D73BDA0',
+  keygrip: 'BA83FC8947213477F28ADC019F6564A956456163',
   pgp: `-----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQdGBF6tzaABEACjFbX7PFEG6vDPN2MPyxYW7/3o/sonORj4HXUFjFxxJxktJ3x3
@@ -119,7 +119,7 @@ PejgXO0uIRolYQ3sz2tMGhx1MfBqH64=
 describe('gpg', () => {
   describe('getVersion', () => {
     it('returns GnuPG and libgcrypt version', async () => {
-      await getVersion().then(version => {
+      await gpg.getVersion().then(version => {
         console.log(version);
         expect(version.gnupg).not.toEqual('');
         expect(version.libgcrypt).not.toEqual('');
@@ -127,25 +127,58 @@ describe('gpg', () => {
     });
   });
 
+  describe('getDirs', () => {
+    it('returns GnuPG dirs', async () => {
+      await gpg.getDirs().then(dirs => {
+        console.log(dirs);
+        expect(dirs.libdir).not.toEqual('');
+        expect(dirs.datadir).not.toEqual('');
+        expect(dirs.homedir).not.toEqual('');
+      });
+    });
+  });
+
   describe('importKey', () => {
     it('imports key to GnuPG', async () => {
-      await importKey(userInfo.pgp).then(() => {
-        console.log(
-          child_process.execSync(`gpg --batch --list-keys --keyid-format LONG ${userInfo.email}`, {encoding: 'utf8'})
-        );
-        console.log(
-          child_process.execSync(`gpg --batch --list-secret-keys --keyid-format LONG ${userInfo.email}`, {
-            encoding: 'utf8'
-          })
-        );
+      await gpg.importKey(userInfo.pgp).then(output => {
+        console.log(output);
+        expect(output).not.toEqual('');
+      });
+    });
+  });
+
+  describe('getKeygrip', () => {
+    it('returns the keygrip', async () => {
+      await gpg.importKey(userInfo.pgp);
+      await gpg.getKeygrip(userInfo.fingerprint).then(keygrip => {
+        console.log(keygrip);
+        expect(keygrip).toEqual(userInfo.keygrip);
+      });
+    });
+  });
+
+  describe('configureAgent', () => {
+    it('configures GnuPG agent', async () => {
+      await gpg.configureAgent(gpg.agentConfig);
+    });
+  });
+
+  describe('presetPassphrase', () => {
+    it('presets passphrase', async () => {
+      await gpg.importKey(userInfo.pgp);
+      const keygrip = await gpg.getKeygrip(userInfo.fingerprint);
+      await gpg.configureAgent(gpg.agentConfig);
+      await gpg.presetPassphrase(keygrip, userInfo.passphrase).then(output => {
+        console.log(output);
+        expect(output).not.toEqual('');
       });
     });
   });
 
   describe('deleteKey', () => {
     it('removes key from GnuPG', async () => {
-      await importKey(userInfo.pgp);
-      await deleteKey(userInfo.fingerprint);
+      await gpg.importKey(userInfo.pgp);
+      await gpg.deleteKey(userInfo.fingerprint);
     });
   });
 });

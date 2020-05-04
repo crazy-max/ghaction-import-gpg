@@ -12,6 +12,12 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 ![Import GPG key](.res/ghaction-import-gpg.png)
 
+## Features
+
+* Works on Linux, MacOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
+* Allow to seed the internal cache of `gpg-agent` with provided passphrase
+* Purge imported GPG key and cache information from runner (security)
+
 ## Usage
 
 ```yaml
@@ -33,6 +39,7 @@ jobs:
         uses: crazy-max/ghaction-import-gpg@master
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
 ```
 
 ## Customizing
@@ -44,6 +51,7 @@ Following environment variables can be used as `step.env` keys
 | Name           | Description                           |
 |----------------|---------------------------------------|
 | `SIGNING_KEY`  | GPG private key exported as an ASCII armored version |
+| `PASSPHRASE`   | Passphrase of your GPG key if setted for your `SIGNING_KEY` |
 
 ## How can I help?
 

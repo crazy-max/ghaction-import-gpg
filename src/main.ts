@@ -12,18 +12,37 @@ async function run(): Promise<void> {
 
     core.info('📣 GnuPG info');
     const version = await gpg.getVersion();
-    core.info(`GnuPG version: ${version.gnupg}`);
-    core.info(`libgcrypt version: ${version.libgcrypt}`);
+    const dirs = await gpg.getDirs();
+    core.info(`Version : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
+    core.info(`Homedir : ${dirs.homedir}`);
+    core.info(`Datadir : ${dirs.datadir}`);
+    core.info(`Libdir  : ${dirs.libdir}`);
 
     core.info('🔮 Checking signing key...');
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
-    core.debug(`key.fingerprint=${privateKey.fingerprint}`);
-    core.debug(`key.keyID=${privateKey.keyID}`);
-    core.debug(`key.userID=${privateKey.userID}`);
-    core.debug(`key.creationTime=${privateKey.creationTime}`);
+    core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
+    core.debug(`KeyID        : ${privateKey.keyID}`);
+    core.debug(`UserID       : ${privateKey.userID}`);
+    core.debug(`CreationTime : ${privateKey.creationTime}`);
 
     core.info('🔑 Importing secret key...');
-    await gpg.importKey(process.env.SIGNING_KEY);
+    await gpg.importKey(process.env.SIGNING_KEY).then(stdout => {
+      core.debug(stdout);
+    });
+
+    if (process.env.PASSPHRASE) {
+      core.info('⚙️ Configuring GnuPG agent...');
+      await gpg.configureAgent(gpg.agentConfig);
+
+      core.info('📌 Getting keygrip...');
+      const keygrip = await gpg.getKeygrip(privateKey.fingerprint);
+      core.debug(`${keygrip}`);
+
+      core.info('🔓 Preset passphrase...');
+      await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
+        core.debug(stdout);
+      });
+    }
   } catch (error) {
     core.setFailed(error.message);
   }
@@ -31,11 +50,11 @@ async function run(): Promise<void> {
 
 async function cleanup(): Promise<void> {
   if (!process.env.SIGNING_KEY) {
-    core.debug('Private key is not defined. Skipping cleanup.');
+    core.debug('Signing key is not defined. Skipping cleanup.');
     return;
   }
   try {
-    core.info('🚿 Removing keys from GnuPG...');
+    core.info('🚿 Removing keys...');
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
     await gpg.deleteKey(privateKey.fingerprint);
   } catch (error) {
