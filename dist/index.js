@@ -1018,7 +1018,6 @@ const core = __importStar(__webpack_require__(470));
 const gpg = __importStar(__webpack_require__(207));
 const openpgp = __importStar(__webpack_require__(781));
 const stateHelper = __importStar(__webpack_require__(153));
-const exec = __importStar(__webpack_require__(986));
 const os_1 = __importDefault(__webpack_require__(87));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -1032,7 +1031,6 @@ function run() {
                 return;
             }
             core.info('📣 GnuPG info');
-            yield exec.exec('which', ['gpg']);
             const version = yield gpg.getVersion();
             const dirs = yield gpg.getDirs();
             core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
@@ -1040,23 +1038,23 @@ function run() {
             core.info(`Libexecdir : ${dirs.libexecdir}`);
             core.info(`Datadir    : ${dirs.datadir}`);
             core.info(`Homedir    : ${dirs.homedir}`);
-            core.info('🔮 Checking signing key...');
+            core.info('🔮 Checking signing key');
             const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
             core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
             core.debug(`KeyID        : ${privateKey.keyID}`);
             core.debug(`UserID       : ${privateKey.userID}`);
             core.debug(`CreationTime : ${privateKey.creationTime}`);
-            core.info('🔑 Importing secret key...');
+            core.info('🔑 Importing secret key');
             yield gpg.importKey(process.env.SIGNING_KEY).then(stdout => {
                 core.debug(stdout);
             });
             if (process.env.PASSPHRASE) {
-                core.info('⚙️ Configuring GnuPG agent...');
+                core.info('⚙️ Configuring GnuPG agent');
                 yield gpg.configureAgent(gpg.agentConfig);
-                core.info('📌 Getting keygrip...');
+                core.info('📌 Getting keygrip');
                 const keygrip = yield gpg.getKeygrip(privateKey.fingerprint);
                 core.debug(`${keygrip}`);
-                core.info('🔓 Preset passphrase...');
+                core.info('🔓 Preset passphrase');
                 yield gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
                     core.debug(stdout);
                 });
@@ -1074,7 +1072,7 @@ function cleanup() {
             return;
         }
         try {
-            core.info('🚿 Removing keys...');
+            core.info('🚿 Removing keys');
             const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
             yield gpg.deleteKey(privateKey.fingerprint);
         }

@@ -2,7 +2,6 @@ import * as core from '@actions/core';
 import * as gpg from './gpg';
 import * as openpgp from './openpgp';
 import * as stateHelper from './state-helper';
-import * as exec from '@actions/exec';
 import os from 'os';
 
 async function run(): Promise<void> {
@@ -18,7 +17,6 @@ async function run(): Promise<void> {
     }
 
     core.info('📣 GnuPG info');
-    await exec.exec('which', ['gpg']);
     const version = await gpg.getVersion();
     const dirs = await gpg.getDirs();
     core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
@@ -27,27 +25,27 @@ async function run(): Promise<void> {
     core.info(`Datadir    : ${dirs.datadir}`);
     core.info(`Homedir    : ${dirs.homedir}`);
 
-    core.info('🔮 Checking signing key...');
+    core.info('🔮 Checking signing key');
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
     core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
     core.debug(`KeyID        : ${privateKey.keyID}`);
     core.debug(`UserID       : ${privateKey.userID}`);
     core.debug(`CreationTime : ${privateKey.creationTime}`);
 
-    core.info('🔑 Importing secret key...');
+    core.info('🔑 Importing secret key');
     await gpg.importKey(process.env.SIGNING_KEY).then(stdout => {
       core.debug(stdout);
     });
 
     if (process.env.PASSPHRASE) {
-      core.info('⚙️ Configuring GnuPG agent...');
+      core.info('⚙️ Configuring GnuPG agent');
       await gpg.configureAgent(gpg.agentConfig);
 
-      core.info('📌 Getting keygrip...');
+      core.info('📌 Getting keygrip');
       const keygrip = await gpg.getKeygrip(privateKey.fingerprint);
       core.debug(`${keygrip}`);
 
-      core.info('🔓 Preset passphrase...');
+      core.info('🔓 Preset passphrase');
       await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
         core.debug(stdout);
       });
@@ -63,7 +61,7 @@ async function cleanup(): Promise<void> {
     return;
   }
   try {
-    core.info('🚿 Removing keys...');
+    core.info('🚿 Removing keys');
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
     await gpg.deleteKey(privateKey.fingerprint);
   } catch (error) {
