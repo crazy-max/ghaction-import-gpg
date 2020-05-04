@@ -27,6 +27,12 @@ jobs:
         run: |
           npm install
           npm run build
+          env|sort
+      -
+        name: Env
+        shell: bash
+        run: |
+          env|sort
       -
         name: Import GPG key
         uses: ./
