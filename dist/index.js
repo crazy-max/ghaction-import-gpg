@@ -1016,12 +1016,18 @@ const gpg = __importStar(__webpack_require__(207));
 const openpgp = __importStar(__webpack_require__(781));
 const stateHelper = __importStar(__webpack_require__(153));
 const exec = __importStar(__webpack_require__(986));
+const os = __importStar(__webpack_require__(87));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             if (!process.env.SIGNING_KEY) {
                 core.setFailed('Signing key required');
                 return;
+            }
+            if (os.platform() == 'win32') {
+                core.info('🏃 Installing GnuPG...');
+                yield exec.exec(`choco feature enable -n=allowGlobalConfirmation`);
+                yield exec.exec(`choco install gnupg`);
             }
             core.info('📣 GnuPG info');
             yield exec.exec('which', ['gpg']);
