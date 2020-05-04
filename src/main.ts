@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import * as gpg from './gpg';
 import * as openpgp from './openpgp';
 import * as stateHelper from './state-helper';
+import * as exec from '@actions/exec';
 
 async function run(): Promise<void> {
   try {
@@ -11,6 +12,7 @@ async function run(): Promise<void> {
     }
 
     core.info('📣 GnuPG info');
+    await exec.exec('which', ['gpg']);
     const version = await gpg.getVersion();
     const dirs = await gpg.getDirs();
     core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);

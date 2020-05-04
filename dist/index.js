@@ -1015,6 +1015,7 @@ const core = __importStar(__webpack_require__(470));
 const gpg = __importStar(__webpack_require__(207));
 const openpgp = __importStar(__webpack_require__(781));
 const stateHelper = __importStar(__webpack_require__(153));
+const exec = __importStar(__webpack_require__(986));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -1023,6 +1024,7 @@ function run() {
                 return;
             }
             core.info('📣 GnuPG info');
+            yield exec.exec('which', ['gpg']);
             const version = yield gpg.getVersion();
             const dirs = yield gpg.getDirs();
             core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
@@ -1114,6 +1116,24 @@ const exec = __importStar(__webpack_require__(807));
 exports.agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
 allow-preset-passphrase`;
+const getGpgPresetPassphrasePath = () => __awaiter(void 0, void 0, void 0, function* () {
+    const { libexecdir: libexecdir } = yield exports.getDirs();
+    let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
+    if (os.platform() == 'win32' && !gpgPresetPassphrasePath.includes(':')) {
+        gpgPresetPassphrasePath = path.join(process.env.HOMEDRIVE || '', libexecdir, 'gpg-preset-passphrase.exe');
+    }
+    return gpgPresetPassphrasePath;
+});
+const getGnupgHome = () => __awaiter(void 0, void 0, void 0, function* () {
+    if (process.env.GNUPGHOME) {
+        return process.env.GNUPGHOME;
+    }
+    let homedir = path.join(process.env.HOME || '', '.gnupg');
+    if (os.platform() == 'win32' && !process.env.HOME) {
+        homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
+    }
+    return homedir;
+});
 exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpg', ['--version'], true).then(res => {
         if (res.stderr != '') {
@@ -1162,10 +1182,10 @@ exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
             }
         }
         return {
-            libdir: path.normalize(libdir),
-            libexecdir: path.normalize(libexecdir),
-            datadir: path.normalize(datadir),
-            homedir: path.normalize(homedir)
+            libdir: libdir,
+            libexecdir: libexecdir,
+            datadir: datadir,
+            homedir: homedir
         };
     });
 });
@@ -1205,11 +1225,7 @@ exports.getKeygrip = (fingerprint) => __awaiter(void 0, void 0, void 0, function
     });
 });
 exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
-    let homedir = path.join(process.env.HOME || '', '.gnupg');
-    if (os.platform() == 'win32') {
-        homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
-    }
-    const gpgAgentConf = path.join(homedir, 'gpg-agent.conf');
+    const gpgAgentConf = path.join(yield getGnupgHome(), 'gpg-agent.conf');
     yield fs.writeFile(gpgAgentConf, config, function (err) {
         if (err)
             throw err;
@@ -1222,7 +1238,7 @@ exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, void 0, function* () {
     yield exec
-        .exec('gpg-preset-passphrase', ['--verbose', '--preset', '--passphrase', `"${passphrase}"`, keygrip], true)
+        .exec(yield getGpgPresetPassphrasePath(), ['--verbose', '--preset', '--passphrase', `"${passphrase}"`, keygrip], true)
         .then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);

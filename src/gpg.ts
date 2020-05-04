@@ -19,6 +19,26 @@ export interface Dirs {
   homedir: string;
 }
 
+const getGpgPresetPassphrasePath = async (): Promise<string> => {
+  const {libexecdir: libexecdir} = await getDirs();
+  let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
+  if (os.platform() == 'win32' && !gpgPresetPassphrasePath.includes(':')) {
+    gpgPresetPassphrasePath = path.join(process.env.HOMEDRIVE || '', libexecdir, 'gpg-preset-passphrase.exe');
+  }
+  return gpgPresetPassphrasePath;
+};
+
+const getGnupgHome = async (): Promise<string> => {
+  if (process.env.GNUPGHOME) {
+    return process.env.GNUPGHOME;
+  }
+  let homedir: string = path.join(process.env.HOME || '', '.gnupg');
+  if (os.platform() == 'win32' && !process.env.HOME) {
+    homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
+  }
+  return homedir;
+};
+
 export const getVersion = async (): Promise<Version> => {
   return await exec.exec('gpg', ['--version'], true).then(res => {
     if (res.stderr != '') {
@@ -69,10 +89,10 @@ export const getDirs = async (): Promise<Dirs> => {
     }
 
     return {
-      libdir: path.normalize(libdir),
-      libexecdir: path.normalize(libexecdir),
-      datadir: path.normalize(datadir),
-      homedir: path.normalize(homedir)
+      libdir: libdir,
+      libexecdir: libexecdir,
+      datadir: datadir,
+      homedir: homedir
     };
   });
 };
@@ -116,12 +136,7 @@ export const getKeygrip = async (fingerprint: string): Promise<string> => {
 };
 
 export const configureAgent = async (config: string): Promise<void> => {
-  let homedir: string = path.join(process.env.HOME || '', '.gnupg');
-  if (os.platform() == 'win32') {
-    homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
-  }
-
-  const gpgAgentConf = path.join(homedir, 'gpg-agent.conf');
+  const gpgAgentConf = path.join(await getGnupgHome(), 'gpg-agent.conf');
   await fs.writeFile(gpgAgentConf, config, function (err) {
     if (err) throw err;
   });
@@ -135,7 +150,11 @@ export const configureAgent = async (config: string): Promise<void> => {
 
 export const presetPassphrase = async (keygrip: string, passphrase: string): Promise<string> => {
   await exec
-    .exec('gpg-preset-passphrase', ['--verbose', '--preset', '--passphrase', `"${passphrase}"`, keygrip], true)
+    .exec(
+      await getGpgPresetPassphrasePath(),
+      ['--verbose', '--preset', '--passphrase', `"${passphrase}"`, keygrip],
+      true
+    )
     .then(res => {
       if (res.stderr != '' && !res.success) {
         throw new Error(res.stderr);
