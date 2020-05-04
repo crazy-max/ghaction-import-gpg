@@ -21,11 +21,23 @@ export interface Dirs {
 
 const getGpgPresetPassphrasePath = async (): Promise<string> => {
   const {libexecdir: libexecdir} = await getDirs();
+
   let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
-  if (os.platform() == 'win32' && !gpgPresetPassphrasePath.includes(':')) {
-    gpgPresetPassphrasePath = path.join(process.env.HOMEDRIVE || '', libexecdir, 'gpg-preset-passphrase.exe');
+  if (await fs.existsSync(gpgPresetPassphrasePath)) {
+    return gpgPresetPassphrasePath;
   }
-  return gpgPresetPassphrasePath;
+
+  gpgPresetPassphrasePath = path.join(process.env.HOMEDRIVE || '', libexecdir, 'gpg-preset-passphrase.exe');
+  if (await fs.existsSync(gpgPresetPassphrasePath)) {
+    return gpgPresetPassphrasePath;
+  }
+
+  gpgPresetPassphrasePath = path.join(`C:\\Program Files\\Git`, libexecdir, 'gpg-preset-passphrase.exe');
+  if (await fs.existsSync(gpgPresetPassphrasePath)) {
+    return gpgPresetPassphrasePath;
+  }
+
+  throw new Error('gpg-preset-passphrase not found');
 };
 
 const getGnupgHome = async (): Promise<string> => {

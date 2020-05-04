@@ -3,19 +3,12 @@ import * as gpg from './gpg';
 import * as openpgp from './openpgp';
 import * as stateHelper from './state-helper';
 import * as exec from '@actions/exec';
-import * as os from 'os';
 
 async function run(): Promise<void> {
   try {
     if (!process.env.SIGNING_KEY) {
       core.setFailed('Signing key required');
       return;
-    }
-
-    if (os.platform() == 'win32') {
-      core.info('🏃 Installing GnuPG...');
-      await exec.exec(`choco feature enable -n=allowGlobalConfirmation`);
-      await exec.exec(`choco install gnupg`);
     }
 
     core.info('📣 GnuPG info');
