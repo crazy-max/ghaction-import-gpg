@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as exec from './exec';
-import which from 'which';
 
 export const agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
@@ -21,43 +20,19 @@ export interface Dirs {
 }
 
 const getGpgPresetPassphrasePath = async (): Promise<string> => {
-  let gpgPresetPassphrasePath: string;
-
-  gpgPresetPassphrasePath = await which('gpg-preset-passphrase').then(resolvedPath => {
-    return resolvedPath;
-  });
-  if (gpgPresetPassphrasePath != '') {
-    return gpgPresetPassphrasePath;
-  }
-
   const {libexecdir: libexecdir} = await getDirs();
-  gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
+  let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
   if (await fs.existsSync(gpgPresetPassphrasePath)) {
     return gpgPresetPassphrasePath;
   }
-
-  gpgPresetPassphrasePath = path.join(process.env.HOMEDRIVE || '', libexecdir, 'gpg-preset-passphrase.exe');
-  if (await fs.existsSync(gpgPresetPassphrasePath)) {
-    return gpgPresetPassphrasePath;
-  }
-
-  gpgPresetPassphrasePath = path.join(`C:\\Program Files\\Git`, libexecdir, 'gpg-preset-passphrase.exe');
-  if (await fs.existsSync(gpgPresetPassphrasePath)) {
-    return gpgPresetPassphrasePath;
-  }
-
-  throw new Error('gpg-preset-passphrase not found');
+  return 'gpg-preset-passphrase';
 };
 
 const getGnupgHome = async (): Promise<string> => {
   if (process.env.GNUPGHOME) {
     return process.env.GNUPGHOME;
   }
-  let homedir: string = path.join(process.env.HOME || '', '.gnupg');
-  if (os.platform() == 'win32' && !process.env.HOME) {
-    homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
-  }
-  return homedir;
+  return path.join(process.env.HOME || '', '.gnupg');
 };
 
 export const getVersion = async (): Promise<Version> => {

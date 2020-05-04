@@ -17,7 +17,6 @@ jobs:
         os:
           - ubuntu-latest
           - macOS-latest
-          - windows-latest
     steps:
       -
         # https://github.com/actions/checkout

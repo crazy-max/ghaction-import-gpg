@@ -3,9 +3,15 @@ import * as gpg from './gpg';
 import * as openpgp from './openpgp';
 import * as stateHelper from './state-helper';
 import * as exec from '@actions/exec';
+import os from 'os';
 
 async function run(): Promise<void> {
   try {
+    if (os.platform() == 'win32') {
+      core.setFailed('Windows platform not supported');
+      return;
+    }
+
     if (!process.env.SIGNING_KEY) {
       core.setFailed('Signing key required');
       return;
