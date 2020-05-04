@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as exec from './exec';
+import which from 'which';
 
 export const agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
@@ -20,9 +21,17 @@ export interface Dirs {
 }
 
 const getGpgPresetPassphrasePath = async (): Promise<string> => {
-  const {libexecdir: libexecdir} = await getDirs();
+  let gpgPresetPassphrasePath: string;
 
-  let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
+  gpgPresetPassphrasePath = await which('gpg-preset-passphrase').then(resolvedPath => {
+    return resolvedPath;
+  });
+  if (gpgPresetPassphrasePath != '') {
+    return gpgPresetPassphrasePath;
+  }
+
+  const {libexecdir: libexecdir} = await getDirs();
+  gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
   if (await fs.existsSync(gpgPresetPassphrasePath)) {
     return gpgPresetPassphrasePath;
   }
@@ -163,8 +172,8 @@ export const configureAgent = async (config: string): Promise<void> => {
 export const presetPassphrase = async (keygrip: string, passphrase: string): Promise<string> => {
   await exec
     .exec(
-      await getGpgPresetPassphrasePath(),
-      ['--verbose', '--preset', '--passphrase', `"${passphrase}"`, keygrip],
+      `"${await getGpgPresetPassphrasePath()}" --verbose --preset --passphrase "${passphrase}" ${keygrip}`,
+      [],
       true
     )
     .then(res => {
