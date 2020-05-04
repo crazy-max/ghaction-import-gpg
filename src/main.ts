@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import * as git from './git';
 import * as gpg from './gpg';
 import * as openpgp from './openpgp';
 import * as stateHelper from './state-helper';
@@ -49,6 +50,12 @@ async function run(): Promise<void> {
       await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
         core.debug(stdout);
       });
+    }
+
+    if (/true/i.test(core.getInput('git_gpgsign'))) {
+      core.info('💎 Enable signing for this Git repository');
+      await git.enableCommitGpgsign();
+      await git.setUserSigningkey(privateKey.keyID);
     }
   } catch (error) {
     core.setFailed(error.message);

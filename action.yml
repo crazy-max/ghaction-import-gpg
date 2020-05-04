@@ -6,6 +6,11 @@ branding:
   color: 'yellow'
   icon: 'lock'
 
+inputs:
+  git_gpgsign:
+    description: 'Enable signing for this Git repository'
+    default: 'false'
+
 runs:
   using: 'node12'
   main: 'dist/index.js'

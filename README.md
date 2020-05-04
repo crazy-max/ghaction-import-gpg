@@ -17,6 +17,7 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 * Works on Linux and MacOS [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
 * Purge imported GPG key and cache information from runner (security)
+* Enable signing for Git commits and tags
 
 ## Usage
 
@@ -36,13 +37,23 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@master
+        uses: crazy-max/ghaction-import-gpg@v1
+        with:
+          git_gpgsign: true
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
 ```
 
 ## Customizing
+
+### inputs
+
+Following inputs can be used as `step.with` keys
+
+| Name                 | Type    | Description                                              |
+|----------------------|---------|----------------------------------------------------------|
+| `git_gpgsign`        | Bool    | Enable signing for this Git repository (default `false`) |
 
 ### environment variables
 

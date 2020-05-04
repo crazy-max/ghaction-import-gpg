@@ -35,6 +35,8 @@ jobs:
       -
         name: Import GPG key
         uses: ./
+        with:
+          git_gpgsign: true
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY_TEST }}
           PASSPHRASE: ${{ secrets.PASSPHRASE_TEST }}
