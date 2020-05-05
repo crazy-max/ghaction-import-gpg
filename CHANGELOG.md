@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.0 (2020/05/06)
+
+* Add `git_tag_gpgsign` and `git_push_gpgsign` inputs
+* Some inputs and secrets have been renamed
+
 ## 1.2.0 (2020/05/05)
 
 * Use `gpg-connect-agent` to seed the internal cache of `gpg-agent`
