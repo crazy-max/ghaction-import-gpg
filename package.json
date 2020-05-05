@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",
-    "@types/node": "^13.13.4",
+    "@types/node": "^13.13.5",
     "@types/openpgp": "^4.4.10",
     "@zeit/ncc": "^0.22.1",
     "jest": "^25.5.4",
