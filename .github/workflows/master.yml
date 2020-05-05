@@ -14,10 +14,6 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        # https://github.com/actions/checkout/issues/6
-        name: Fix detached HEAD
-        run: git checkout ${GITHUB_REF#refs/heads/}
-      -
         name: Build
         run: |
           npm install
