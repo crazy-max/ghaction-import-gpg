@@ -1139,19 +1139,24 @@ const exec = __importStar(__webpack_require__(807));
 exports.agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
 allow-preset-passphrase`;
-const getGpgPresetPassphrasePath = () => __awaiter(void 0, void 0, void 0, function* () {
-    const { libexecdir: libexecdir } = yield exports.getDirs();
-    let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
-    if (yield fs.existsSync(gpgPresetPassphrasePath)) {
-        return gpgPresetPassphrasePath;
-    }
-    return 'gpg-preset-passphrase';
-});
 const getGnupgHome = () => __awaiter(void 0, void 0, void 0, function* () {
     if (process.env.GNUPGHOME) {
         return process.env.GNUPGHOME;
     }
     return path.join(process.env.HOME || '', '.gnupg');
+});
+const gpgConnectAgent = (command) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield exec.exec(`gpg-connect-agent "${command}" /bye`, [], true).then(res => {
+        if (res.stderr != '' && !res.success) {
+            throw new Error(res.stderr);
+        }
+        for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
+            if (line.startsWith('ERR')) {
+                throw new Error(line);
+            }
+        }
+        return res.stdout.trim();
+    });
 });
 exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpg', ['--version'], true).then(res => {
@@ -1238,6 +1243,7 @@ exports.getKeygrip = (fingerprint) => __awaiter(void 0, void 0, void 0, function
         for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
             if (line.startsWith('grp')) {
                 keygrip = line.replace(/(grp|:)/g, '').trim();
+                break;
             }
         }
         return keygrip;
@@ -1249,31 +1255,12 @@ exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function*
         if (err)
             throw err;
     });
-    yield exec.exec(`gpg-connect-agent "RELOADAGENT" /bye`, [], true).then(res => {
-        if (res.stderr != '' && !res.success) {
-            throw new Error(res.stderr);
-        }
-    });
+    yield gpgConnectAgent('RELOADAGENT');
 });
 exports.presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, void 0, function* () {
-    yield exec
-        .exec(`"${yield getGpgPresetPassphrasePath()}" --verbose --preset --passphrase "${passphrase}" ${keygrip}`, [], true)
-        .then(res => {
-        if (res.stderr != '' && !res.success) {
-            throw new Error(res.stderr);
-        }
-    });
-    return yield exec.exec(`gpg-connect-agent "KEYINFO ${keygrip}" /bye`, [], true).then(res => {
-        if (res.stderr != '' && !res.success) {
-            throw new Error(res.stderr);
-        }
-        for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
-            if (line.startsWith('ERR')) {
-                throw new Error(line);
-            }
-        }
-        return res.stdout.trim();
-    });
+    const hexPassphrase = Buffer.from(passphrase, 'utf8').toString('hex').toUpperCase();
+    yield gpgConnectAgent(`PRESET_PASSPHRASE ${keygrip} -1 ${hexPassphrase}`);
+    return yield gpgConnectAgent(`KEYINFO ${keygrip}`);
 });
 exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
     yield exec.exec('gpg', ['--batch', '--yes', '--delete-secret-keys', fingerprint], true).then(res => {

@@ -19,20 +19,25 @@ export interface Dirs {
   homedir: string;
 }
 
-const getGpgPresetPassphrasePath = async (): Promise<string> => {
-  const {libexecdir: libexecdir} = await getDirs();
-  let gpgPresetPassphrasePath = path.join(libexecdir, 'gpg-preset-passphrase');
-  if (await fs.existsSync(gpgPresetPassphrasePath)) {
-    return gpgPresetPassphrasePath;
-  }
-  return 'gpg-preset-passphrase';
-};
-
 const getGnupgHome = async (): Promise<string> => {
   if (process.env.GNUPGHOME) {
     return process.env.GNUPGHOME;
   }
   return path.join(process.env.HOME || '', '.gnupg');
+};
+
+const gpgConnectAgent = async (command: string): Promise<string> => {
+  return await exec.exec(`gpg-connect-agent "${command}" /bye`, [], true).then(res => {
+    if (res.stderr != '' && !res.success) {
+      throw new Error(res.stderr);
+    }
+    for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
+      if (line.startsWith('ERR')) {
+        throw new Error(line);
+      }
+    }
+    return res.stdout.trim();
+  });
 };
 
 export const getVersion = async (): Promise<Version> => {
@@ -125,6 +130,7 @@ export const getKeygrip = async (fingerprint: string): Promise<string> => {
       for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
         if (line.startsWith('grp')) {
           keygrip = line.replace(/(grp|:)/g, '').trim();
+          break;
         }
       }
       return keygrip;
@@ -136,38 +142,13 @@ export const configureAgent = async (config: string): Promise<void> => {
   await fs.writeFile(gpgAgentConf, config, function (err) {
     if (err) throw err;
   });
-
-  await exec.exec(`gpg-connect-agent "RELOADAGENT" /bye`, [], true).then(res => {
-    if (res.stderr != '' && !res.success) {
-      throw new Error(res.stderr);
-    }
-  });
+  await gpgConnectAgent('RELOADAGENT');
 };
 
 export const presetPassphrase = async (keygrip: string, passphrase: string): Promise<string> => {
-  await exec
-    .exec(
-      `"${await getGpgPresetPassphrasePath()}" --verbose --preset --passphrase "${passphrase}" ${keygrip}`,
-      [],
-      true
-    )
-    .then(res => {
-      if (res.stderr != '' && !res.success) {
-        throw new Error(res.stderr);
-      }
-    });
-
-  return await exec.exec(`gpg-connect-agent "KEYINFO ${keygrip}" /bye`, [], true).then(res => {
-    if (res.stderr != '' && !res.success) {
-      throw new Error(res.stderr);
-    }
-    for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
-      if (line.startsWith('ERR')) {
-        throw new Error(line);
-      }
-    }
-    return res.stdout.trim();
-  });
+  const hexPassphrase: string = Buffer.from(passphrase, 'utf8').toString('hex').toUpperCase();
+  await gpgConnectAgent(`PRESET_PASSPHRASE ${keygrip} -1 ${hexPassphrase}`);
+  return await gpgConnectAgent(`KEYINFO ${keygrip}`);
 };
 
 export const deleteKey = async (fingerprint: string): Promise<void> => {
