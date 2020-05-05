@@ -60,18 +60,17 @@ async function run(): Promise<void> {
     }
 
     if (git_gpgsign) {
-      core.info(`🔨 Configuring git committer to be ${git_committer_name} <${git_committer_email}>`);
+      core.info(`🔨 Configuring Git committer (${git_committer_name} <${git_committer_email}>)`);
       if (git_committer_email != privateKey.email) {
         core.setFailed('Committer email does not match GPG key user address');
         return;
       }
-
       await git.setConfig('user.name', git_committer_name);
       await git.setConfig('user.email', git_committer_email);
 
       core.info('💎 Enable signing for this Git repository');
-      await git.enableCommitGpgsign();
-      await git.setUserSigningkey(privateKey.keyID);
+      await git.setConfig('commit.gpgsign', 'true');
+      await git.setConfig('user.signingkey', privateKey.keyID);
     }
   } catch (error) {
     core.setFailed(error.message);

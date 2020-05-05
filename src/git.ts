@@ -9,14 +9,6 @@ const git = async (args: string[] = []): Promise<string> => {
   });
 };
 
-export async function enableCommitGpgsign(): Promise<void> {
-  await git(['config', 'commit.gpgsign', 'true']);
-}
-
-export async function setUserSigningkey(keyid: string): Promise<void> {
-  await git(['config', 'user.signingkey', keyid]);
-}
-
 export async function getConfig(key: string): Promise<string> {
   return await git(['config', key]);
 }

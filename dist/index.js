@@ -1065,7 +1065,7 @@ function run() {
                 });
             }
             if (git_gpgsign) {
-                core.info(`🔨 Configuring git committer to be ${git_committer_name} <${git_committer_email}>`);
+                core.info(`🔨 Configuring Git committer (${git_committer_name} <${git_committer_email}>)`);
                 if (git_committer_email != privateKey.email) {
                     core.setFailed('Committer email does not match GPG key user address');
                     return;
@@ -1073,8 +1073,8 @@ function run() {
                 yield git.setConfig('user.name', git_committer_name);
                 yield git.setConfig('user.email', git_committer_email);
                 core.info('💎 Enable signing for this Git repository');
-                yield git.enableCommitGpgsign();
-                yield git.setUserSigningkey(privateKey.keyID);
+                yield git.setConfig('commit.gpgsign', 'true');
+                yield git.setConfig('user.signingkey', privateKey.keyID);
             }
         }
         catch (error) {
@@ -1420,18 +1420,6 @@ const git = (args = []) => __awaiter(void 0, void 0, void 0, function* () {
         return res.stdout.trim();
     });
 });
-function enableCommitGpgsign() {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield git(['config', 'commit.gpgsign', 'true']);
-    });
-}
-exports.enableCommitGpgsign = enableCommitGpgsign;
-function setUserSigningkey(keyid) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield git(['config', 'user.signingkey', keyid]);
-    });
-}
-exports.setUserSigningkey = setUserSigningkey;
 function getConfig(key) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield git(['config', key]);
