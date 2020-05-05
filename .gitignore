@@ -7,7 +7,7 @@
 !/node_modules/bn.js/
 !/node_modules/inherits/
 !/node_modules/safe-buffer/
-!/node_modules/minimalistic-assert.js/
+!/node_modules/minimalistic-assert/
 
 # Jetbrains
 /.idea
