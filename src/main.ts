@@ -87,6 +87,9 @@ async function cleanup(): Promise<void> {
     core.info('🚿 Removing keys');
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
     await gpg.deleteKey(privateKey.fingerprint);
+
+    core.info('💀 Killing GnuPG agent');
+    await gpg.killAgent();
   } catch (error) {
     core.warning(error.message);
   }

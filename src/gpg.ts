@@ -163,3 +163,7 @@ export const deleteKey = async (fingerprint: string): Promise<void> => {
     }
   });
 };
+
+export const killAgent = async (): Promise<void> => {
+  await gpgConnectAgent('KILLAGENT');
+};

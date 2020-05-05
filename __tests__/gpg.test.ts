@@ -180,4 +180,10 @@ describe('gpg', () => {
       await gpg.deleteKey(userInfo.fingerprint);
     });
   });
+
+  describe('killAgent', () => {
+    it('kills GnuPG agent', async () => {
+      await gpg.killAgent();
+    });
+  });
 });

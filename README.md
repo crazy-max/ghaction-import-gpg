@@ -18,7 +18,7 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
 * Enable signing for Git commits and tags
 * Configure and check committer info against GPG key
-* Purge imported GPG key and cache information from runner
+* Purge imported GPG key, cache information and kill agent from runner
 
 ## Usage
 

@@ -1092,6 +1092,8 @@ function cleanup() {
             core.info('🚿 Removing keys');
             const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
             yield gpg.deleteKey(privateKey.fingerprint);
+            core.info('💀 Killing GnuPG agent');
+            yield gpg.killAgent();
         }
         catch (error) {
             core.warning(error.message);
@@ -1273,6 +1275,9 @@ exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function*
             throw new Error(res.stderr);
         }
     });
+});
+exports.killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
+    yield gpgConnectAgent('KILLAGENT');
 });
 
 
