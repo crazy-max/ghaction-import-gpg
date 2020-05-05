@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 (2020/05/05)
+
+* Use `gpg-connect-agent` to seed the internal cache of `gpg-agent`
+* Fix keygrip (#10)
+* Kill GnuPG agent at POST step
+* Bring back support for Windows
+
 ## 1.1.0 (2020/05/05)
 
 * Configure and check committer email against GPG user address
