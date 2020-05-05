@@ -1,8 +1,12 @@
 /.dev
 /lib
 /node_modules/*
+
+# Fix https://github.com/crazy-max/ghaction-import-gpg/issues/9
 !/node_modules/asn1.js/
 !/node_modules/bn.js/
+!/node_modules/inherits/
+!/node_modules/safe-buffer/
 !/node_modules/minimalistic-assert.js/
 
 # Jetbrains
