@@ -22,6 +22,14 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 ## Usage
 
+On your local machine, export the GPG private key as an ASCII armored version:
+
+```shell
+gpg --armor --export-secret-key --output key.pgp joe@foo.bar
+```
+
+Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `SIGNING_KEY` for example. Create another secret with your `PASSPHRASE` if applicable.
+
 ```yaml
 name: import-gpg
 
