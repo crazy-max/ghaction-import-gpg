@@ -28,7 +28,7 @@ On your local machine, export the GPG private key as an ASCII armored version:
 gpg --armor --export-secret-key --output key.pgp joe@foo.bar
 ```
 
-Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `SIGNING_KEY` for example. Create another secret with your `PASSPHRASE` if applicable.
+Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with your `PASSPHRASE` if applicable.
 
 ```yaml
 name: import-gpg
@@ -48,10 +48,19 @@ jobs:
         name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v1
         with:
-          git_gpgsign: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
         env:
-          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      -
+        name: Sign commit and push changes
+        run: |
+          echo foo > bar.txt
+          git add .
+          git commit -S -m "This commit is signed!"
+          git push
 ```
 
 ## Customizing
@@ -62,7 +71,10 @@ Following inputs can be used as `step.with` keys
 
 | Name                   | Type    | Description                                              |
 |------------------------|---------|----------------------------------------------------------|
-| `git_gpgsign`          | Bool    | Enable signing for this Git repository (default `false`) |
+| `git_user_signingkey`  | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
+| `git_commit_gpgsign`   | Bool    | Sign all commits automatically. `git_user_signingkey` needs to be enabled. (default `false`) |
+| `git_tag_gpgsign`      | Bool    | Sign all tags automatically. `git_user_signingkey` needs to be enabled. (default `false`) |
+| `git_push_gpgsign`     | Bool    | Sign all pushes automatically. `git_user_signingkey` needs to be enabled. (default `false`) |
 | `git_committer_name`   | String  | Commit author's name (default [GITHUB_ACTOR](https://help.github.com/en/github/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables) or `github-actions`) |
 | `git_committer_email`  | String  | Commit author's email (default `<committer_name>@users.noreply.github.com`) |
 
@@ -70,10 +82,10 @@ Following inputs can be used as `step.with` keys
 
 Following environment variables can be used as `step.env` keys
 
-| Name           | Description                           |
-|----------------|---------------------------------------|
-| `SIGNING_KEY`  | GPG private key exported as an ASCII armored version |
-| `PASSPHRASE`   | Passphrase of your GPG key if setted for your `SIGNING_KEY` |
+| Name               | Description                           |
+|--------------------|---------------------------------------|
+| `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version |
+| `PASSPHRASE`       | Passphrase of your `GPG_PRIVATE_KEY` key if setted |
 
 ## How can I help?
 

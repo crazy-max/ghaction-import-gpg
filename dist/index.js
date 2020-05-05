@@ -1019,11 +1019,14 @@ const stateHelper = __importStar(__webpack_require__(153));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (!process.env.SIGNING_KEY) {
-                core.setFailed('Signing key required');
+            if (!process.env.GPG_PRIVATE_KEY) {
+                core.setFailed('GPG private key required');
                 return;
             }
-            const git_gpgsign = /true/i.test(core.getInput('git_gpgsign'));
+            const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
+            const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
+            const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
+            const git_user_signingkey = /true/i.test(core.getInput('git_user_signingkey'));
             const git_committer_name = core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
             const git_committer_email = core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
             core.info('📣 GnuPG info');
@@ -1034,15 +1037,15 @@ function run() {
             core.info(`Libexecdir : ${dirs.libexecdir}`);
             core.info(`Datadir    : ${dirs.datadir}`);
             core.info(`Homedir    : ${dirs.homedir}`);
-            core.info('🔮 Checking signing key');
-            const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
+            core.info('🔮 Checking GPG private key');
+            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
             core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
             core.debug(`KeyID        : ${privateKey.keyID}`);
             core.debug(`Name         : ${privateKey.name}`);
             core.debug(`Email        : ${privateKey.email}`);
             core.debug(`CreationTime : ${privateKey.creationTime}`);
-            core.info('🔑 Importing secret key');
-            yield gpg.importKey(process.env.SIGNING_KEY).then(stdout => {
+            core.info('🔑 Importing GPG private key');
+            yield gpg.importKey(process.env.GPG_PRIVATE_KEY).then(stdout => {
                 core.debug(stdout);
             });
             if (process.env.PASSPHRASE) {
@@ -1056,17 +1059,28 @@ function run() {
                     core.debug(stdout);
                 });
             }
-            if (git_gpgsign) {
-                core.info(`🔨 Configuring Git committer (${git_committer_name} <${git_committer_email}>)`);
+            if (git_user_signingkey) {
+                core.info('🔐 Setting GPG signing keyID for this Git repository');
+                yield git.setConfig('user.signingkey', privateKey.keyID);
                 if (git_committer_email != privateKey.email) {
                     core.setFailed('Committer email does not match GPG key user address');
                     return;
                 }
+                core.info(`🔨 Configuring Git committer (${git_committer_name} <${git_committer_email}>)`);
                 yield git.setConfig('user.name', git_committer_name);
                 yield git.setConfig('user.email', git_committer_email);
-                core.info('💎 Enable signing for this Git repository');
-                yield git.setConfig('commit.gpgsign', 'true');
-                yield git.setConfig('user.signingkey', privateKey.keyID);
+                if (git_commit_gpgsign) {
+                    core.info('💎 Sign all commits automatically');
+                    yield git.setConfig('commit.gpgsign', 'true');
+                }
+                if (git_tag_gpgsign) {
+                    core.info('💎 Sign all tags automatically');
+                    yield git.setConfig('tag.gpgsign', 'true');
+                }
+                if (git_push_gpgsign) {
+                    core.info('💎 Sign all pushes automatically');
+                    yield git.setConfig('push.gpgsign', 'true');
+                }
             }
         }
         catch (error) {
@@ -1076,13 +1090,13 @@ function run() {
 }
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!process.env.SIGNING_KEY) {
-            core.debug('Signing key is not defined. Skipping cleanup.');
+        if (!process.env.GPG_PRIVATE_KEY) {
+            core.debug('GPG private key is not defined. Skipping cleanup.');
             return;
         }
         try {
             core.info('🚿 Removing keys');
-            const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
+            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
             yield gpg.deleteKey(privateKey.fingerprint);
             core.info('💀 Killing GnuPG agent');
             yield gpg.killAgent();
