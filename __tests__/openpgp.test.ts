@@ -5,7 +5,6 @@ const userInfo = {
   email: 'joe@foo.bar',
   passphrase: 'with stupid passphrase',
   keyID: 'D523BD50DD70B0BA',
-  userID: 'Joe Tester <joe@foo.bar>',
   fingerprint: '27571A53B86AF0C799B38BA77D851EB72D73BDA0',
   pgp: `-----BEGIN PGP PRIVATE KEY BLOCK-----
 
@@ -120,7 +119,8 @@ describe('openpgp', () => {
     it('returns a PGP private key', async () => {
       await openpgp.readPrivateKey(userInfo.pgp).then(privateKey => {
         expect(privateKey.keyID).toEqual(userInfo.keyID);
-        expect(privateKey.userID).toEqual(userInfo.userID);
+        expect(privateKey.name).toEqual(userInfo.name);
+        expect(privateKey.email).toEqual(userInfo.email);
         expect(privateKey.fingerprint).toEqual(userInfo.fingerprint);
       });
     });

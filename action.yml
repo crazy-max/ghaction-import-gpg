@@ -10,6 +10,10 @@ inputs:
   git_gpgsign:
     description: 'Enable signing for this Git repository'
     default: 'false'
+  git_committer_name:
+    description: 'Commit author''s name'
+  git_committer_email:
+    description: 'Commit author''s email'
 
 runs:
   using: 'node12'

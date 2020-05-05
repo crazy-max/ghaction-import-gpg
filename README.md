@@ -16,8 +16,9 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 * Works on Linux and MacOS [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
-* Purge imported GPG key and cache information from runner (security)
 * Enable signing for Git commits and tags
+* Configure and check committer info against GPG key
+* Purge imported GPG key and cache information from runner
 
 ## Usage
 
@@ -51,9 +52,11 @@ jobs:
 
 Following inputs can be used as `step.with` keys
 
-| Name                 | Type    | Description                                              |
-|----------------------|---------|----------------------------------------------------------|
-| `git_gpgsign`        | Bool    | Enable signing for this Git repository (default `false`) |
+| Name                   | Type    | Description                                              |
+|------------------------|---------|----------------------------------------------------------|
+| `git_gpgsign`          | Bool    | Enable signing for this Git repository (default `false`) |
+| `git_committer_name`   | String  | Commit author's name (default [GITHUB_ACTOR](https://help.github.com/en/github/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables) or `github-actions`) |
+| `git_committer_email`  | String  | Commit author's email (default `<committer_name>@users.noreply.github.com`) |
 
 ### environment variables
 

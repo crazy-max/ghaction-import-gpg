@@ -17,6 +17,12 @@ async function run(): Promise<void> {
       return;
     }
 
+    const git_gpgsign = /true/i.test(core.getInput('git_gpgsign'));
+    const git_committer_name: string =
+      core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
+    const git_committer_email: string =
+      core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
+
     core.info('📣 GnuPG info');
     const version = await gpg.getVersion();
     const dirs = await gpg.getDirs();
@@ -30,7 +36,8 @@ async function run(): Promise<void> {
     const privateKey = await openpgp.readPrivateKey(process.env.SIGNING_KEY);
     core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
     core.debug(`KeyID        : ${privateKey.keyID}`);
-    core.debug(`UserID       : ${privateKey.userID}`);
+    core.debug(`Name         : ${privateKey.name}`);
+    core.debug(`Email        : ${privateKey.email}`);
     core.debug(`CreationTime : ${privateKey.creationTime}`);
 
     core.info('🔑 Importing secret key');
@@ -52,7 +59,16 @@ async function run(): Promise<void> {
       });
     }
 
-    if (/true/i.test(core.getInput('git_gpgsign'))) {
+    if (git_gpgsign) {
+      core.info(`🔨 Configuring git committer to be ${git_committer_name} <${git_committer_email}>`);
+      if (git_committer_email != privateKey.email) {
+        core.setFailed('Committer email does not match GPG key user address');
+        return;
+      }
+
+      await git.setConfig('user.name', git_committer_name);
+      await git.setConfig('user.email', git_committer_email);
+
       core.info('💎 Enable signing for this Git repository');
       await git.enableCommitGpgsign();
       await git.setUserSigningkey(privateKey.keyID);

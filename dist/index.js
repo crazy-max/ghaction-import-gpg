@@ -1031,6 +1031,9 @@ function run() {
                 core.setFailed('Signing key required');
                 return;
             }
+            const git_gpgsign = /true/i.test(core.getInput('git_gpgsign'));
+            const git_committer_name = core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
+            const git_committer_email = core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
             core.info('📣 GnuPG info');
             const version = yield gpg.getVersion();
             const dirs = yield gpg.getDirs();
@@ -1043,7 +1046,8 @@ function run() {
             const privateKey = yield openpgp.readPrivateKey(process.env.SIGNING_KEY);
             core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
             core.debug(`KeyID        : ${privateKey.keyID}`);
-            core.debug(`UserID       : ${privateKey.userID}`);
+            core.debug(`Name         : ${privateKey.name}`);
+            core.debug(`Email        : ${privateKey.email}`);
             core.debug(`CreationTime : ${privateKey.creationTime}`);
             core.info('🔑 Importing secret key');
             yield gpg.importKey(process.env.SIGNING_KEY).then(stdout => {
@@ -1060,7 +1064,14 @@ function run() {
                     core.debug(stdout);
                 });
             }
-            if (/true/i.test(core.getInput('git_gpgsign'))) {
+            if (git_gpgsign) {
+                core.info(`🔨 Configuring git committer to be ${git_committer_name} <${git_committer_email}>`);
+                if (git_committer_email != privateKey.email) {
+                    core.setFailed('Committer email does not match GPG key user address');
+                    return;
+                }
+                yield git.setConfig('user.name', git_committer_name);
+                yield git.setConfig('user.email', git_committer_email);
                 core.info('💎 Enable signing for this Git repository');
                 yield git.enableCommitGpgsign();
                 yield git.setUserSigningkey(privateKey.keyID);
@@ -1429,6 +1440,18 @@ function setUserSigningkey(keyid) {
     });
 }
 exports.setUserSigningkey = setUserSigningkey;
+function getConfig(key) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield git(['config', key]);
+    });
+}
+exports.getConfig = getConfig;
+function setConfig(key, value) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield git(['config', key, value]);
+    });
+}
+exports.setConfig = setConfig;
 
 
 /***/ }),
@@ -45642,22 +45665,28 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const openpgp = __importStar(__webpack_require__(724));
+const addressparser_1 = __importDefault(__webpack_require__(977));
 exports.readPrivateKey = (armoredText) => __awaiter(void 0, void 0, void 0, function* () {
     const { keys: [privateKey], err: err } = yield openpgp.key.readArmored(armoredText);
     if (err === null || err === void 0 ? void 0 : err.length) {
         throw err[0];
     }
+    const address = yield privateKey.getPrimaryUser().then(primaryUser => {
+        return addressparser_1.default(primaryUser.user.userId.userid)[0];
+    });
     return {
         fingerprint: privateKey.getFingerprint().toUpperCase(),
         keyID: yield privateKey.getEncryptionKey().then(encKey => {
             // @ts-ignore
             return encKey === null || encKey === void 0 ? void 0 : encKey.getKeyId().toHex().toUpperCase();
         }),
-        userID: yield privateKey.getPrimaryUser().then(primaryUser => {
-            return primaryUser.user.userId.userid;
-        }),
+        name: address.name,
+        email: address.address,
         creationTime: privateKey.getCreationTime()
     };
 });
@@ -45721,6 +45750,305 @@ exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0,
         stderr: stderr.trim()
     };
 });
+
+
+/***/ }),
+
+/***/ 977:
+/***/ (function(module) {
+
+"use strict";
+
+
+// expose to the world
+module.exports = addressparser;
+
+/**
+ * Parses structured e-mail addresses from an address field
+ *
+ * Example:
+ *
+ *    'Name <address@domain>'
+ *
+ * will be converted to
+ *
+ *     [{name: 'Name', address: 'address@domain'}]
+ *
+ * @param {String} str Address field
+ * @return {Array} An array of address objects
+ */
+function addressparser(str) {
+    var tokenizer = new Tokenizer(str);
+    var tokens = tokenizer.tokenize();
+
+    var addresses = [];
+    var address = [];
+    var parsedAddresses = [];
+
+    tokens.forEach(function (token) {
+        if (token.type === 'operator' && (token.value === ',' || token.value === ';')) {
+            if (address.length) {
+                addresses.push(address);
+            }
+            address = [];
+        } else {
+            address.push(token);
+        }
+    });
+
+    if (address.length) {
+        addresses.push(address);
+    }
+
+    addresses.forEach(function (address) {
+        address = _handleAddress(address);
+        if (address.length) {
+            parsedAddresses = parsedAddresses.concat(address);
+        }
+    });
+
+    return parsedAddresses;
+}
+
+/**
+ * Converts tokens for a single address into an address object
+ *
+ * @param {Array} tokens Tokens object
+ * @return {Object} Address object
+ */
+function _handleAddress(tokens) {
+    var token;
+    var isGroup = false;
+    var state = 'text';
+    var address;
+    var addresses = [];
+    var data = {
+        address: [],
+        comment: [],
+        group: [],
+        text: []
+    };
+    var i;
+    var len;
+
+    // Filter out <addresses>, (comments) and regular text
+    for (i = 0, len = tokens.length; i < len; i++) {
+        token = tokens[i];
+        if (token.type === 'operator') {
+            switch (token.value) {
+                case '<':
+                    state = 'address';
+                    break;
+                case '(':
+                    state = 'comment';
+                    break;
+                case ':':
+                    state = 'group';
+                    isGroup = true;
+                    break;
+                default:
+                    state = 'text';
+            }
+        } else if (token.value) {
+            if (state === 'address') {
+                // handle use case where unquoted name includes a "<"
+                // Apple Mail truncates everything between an unexpected < and an address
+                // and so will we
+                token.value = token.value.replace(/^[^<]*<\s*/, '');
+            }
+            data[state].push(token.value);
+        }
+    }
+
+    // If there is no text but a comment, replace the two
+    if (!data.text.length && data.comment.length) {
+        data.text = data.comment;
+        data.comment = [];
+    }
+
+    if (isGroup) {
+        // http://tools.ietf.org/html/rfc2822#appendix-A.1.3
+        data.text = data.text.join(' ');
+        addresses.push({
+            name: data.text || (address && address.name),
+            group: data.group.length ? addressparser(data.group.join(',')) : []
+        });
+    } else {
+        // If no address was found, try to detect one from regular text
+        if (!data.address.length && data.text.length) {
+            for (i = data.text.length - 1; i >= 0; i--) {
+                if (data.text[i].match(/^[^@\s]+@[^@\s]+$/)) {
+                    data.address = data.text.splice(i, 1);
+                    break;
+                }
+            }
+
+            var _regexHandler = function (address) {
+                if (!data.address.length) {
+                    data.address = [address.trim()];
+                    return ' ';
+                } else {
+                    return address;
+                }
+            };
+
+            // still no address
+            if (!data.address.length) {
+                for (i = data.text.length - 1; i >= 0; i--) {
+                    // fixed the regex to parse email address correctly when email address has more than one @
+                    data.text[i] = data.text[i].replace(/\s*\b[^@\s]+@[^\s]+\b\s*/, _regexHandler).trim();
+                    if (data.address.length) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        // If there's still is no text but a comment exixts, replace the two
+        if (!data.text.length && data.comment.length) {
+            data.text = data.comment;
+            data.comment = [];
+        }
+
+        // Keep only the first address occurence, push others to regular text
+        if (data.address.length > 1) {
+            data.text = data.text.concat(data.address.splice(1));
+        }
+
+        // Join values with spaces
+        data.text = data.text.join(' ');
+        data.address = data.address.join(' ');
+
+        if (!data.address && isGroup) {
+            return [];
+        } else {
+            address = {
+                address: data.address || data.text || '',
+                name: data.text || data.address || ''
+            };
+
+            if (address.address === address.name) {
+                if ((address.address || '').match(/@/)) {
+                    address.name = '';
+                } else {
+                    address.address = '';
+                }
+
+            }
+
+            addresses.push(address);
+        }
+    }
+
+    return addresses;
+}
+
+/**
+ * Creates a Tokenizer object for tokenizing address field strings
+ *
+ * @constructor
+ * @param {String} str Address field string
+ */
+function Tokenizer(str) {
+    this.str = (str || '').toString();
+    this.operatorCurrent = '';
+    this.operatorExpecting = '';
+    this.node = null;
+    this.escaped = false;
+
+    this.list = [];
+}
+
+/**
+ * Operator tokens and which tokens are expected to end the sequence
+ */
+Tokenizer.prototype.operators = {
+    '"': '"',
+    '(': ')',
+    '<': '>',
+    ',': '',
+    ':': ';',
+    // Semicolons are not a legal delimiter per the RFC2822 grammar other
+    // than for terminating a group, but they are also not valid for any
+    // other use in this context.  Given that some mail clients have
+    // historically allowed the semicolon as a delimiter equivalent to the
+    // comma in their UI, it makes sense to treat them the same as a comma
+    // when used outside of a group.
+    ';': ''
+};
+
+/**
+ * Tokenizes the original input string
+ *
+ * @return {Array} An array of operator|text tokens
+ */
+Tokenizer.prototype.tokenize = function () {
+    var chr, list = [];
+    for (var i = 0, len = this.str.length; i < len; i++) {
+        chr = this.str.charAt(i);
+        this.checkChar(chr);
+    }
+
+    this.list.forEach(function (node) {
+        node.value = (node.value || '').toString().trim();
+        if (node.value) {
+            list.push(node);
+        }
+    });
+
+    return list;
+};
+
+/**
+ * Checks if a character is an operator or text and acts accordingly
+ *
+ * @param {String} chr Character from the address field
+ */
+Tokenizer.prototype.checkChar = function (chr) {
+    if ((chr in this.operators || chr === '\\') && this.escaped) {
+        this.escaped = false;
+    } else if (this.operatorExpecting && chr === this.operatorExpecting) {
+        this.node = {
+            type: 'operator',
+            value: chr
+        };
+        this.list.push(this.node);
+        this.node = null;
+        this.operatorExpecting = '';
+        this.escaped = false;
+        return;
+    } else if (!this.operatorExpecting && chr in this.operators) {
+        this.node = {
+            type: 'operator',
+            value: chr
+        };
+        this.list.push(this.node);
+        this.node = null;
+        this.operatorExpecting = this.operators[chr];
+        this.escaped = false;
+        return;
+    }
+
+    if (!this.escaped && chr === '\\') {
+        this.escaped = true;
+        return;
+    }
+
+    if (!this.node) {
+        this.node = {
+            type: 'text',
+            value: ''
+        };
+        this.list.push(this.node);
+    }
+
+    if (this.escaped && chr !== '\\') {
+        this.node.value += '\\';
+    }
+
+    this.node.value += chr;
+    this.escaped = false;
+};
 
 
 /***/ }),

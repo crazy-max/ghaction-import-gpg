@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 (2020/05/05)
+
+* Configure and check committer email against GPG user address
+
 ## 1.0.0 (2020/05/04)
 
 * Enable signing for Git commits and tags (#4)

@@ -5,7 +5,6 @@ const userInfo = {
   email: 'joe@foo.bar',
   passphrase: 'with stupid passphrase',
   keyID: 'D523BD50DD70B0BA',
-  userID: 'Joe Tester <joe@foo.bar>',
   fingerprint: '27571A53B86AF0C799B38BA77D851EB72D73BDA0',
   keygrip: 'BA83FC8947213477F28ADC019F6564A956456163',
   pgp: `-----BEGIN PGP PRIVATE KEY BLOCK-----
