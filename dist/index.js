@@ -1023,10 +1023,10 @@ function run() {
                 core.setFailed('GPG private key required');
                 return;
             }
+            const git_user_signingkey = /true/i.test(core.getInput('git_user_signingkey'));
             const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
             const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
             const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
-            const git_user_signingkey = /true/i.test(core.getInput('git_user_signingkey'));
             const git_committer_name = core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
             const git_committer_email = core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
             core.info('📣 GnuPG info');

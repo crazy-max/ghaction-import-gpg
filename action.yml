@@ -7,8 +7,17 @@ branding:
   icon: 'lock'
 
 inputs:
-  git_gpgsign:
-    description: 'Enable signing for this Git repository'
+  git_user_signingkey:
+    description: 'Set GPG signing keyID for this Git repository'
+    default: 'false'
+  git_commit_gpgsign:
+    description: 'Sign all commits automatically. git_user_signingkey needs to be enabled'
+    default: 'false'
+  git_tag_gpgsign:
+    description: 'Sign all tags automatically. git_user_signingkey needs to be enabled'
+    default: 'false'
+  git_push_gpgsign:
+    description: 'Sign all pushes automatically. git_user_signingkey needs to be enabled'
     default: 'false'
   git_committer_name:
     description: 'Commit author''s name'
