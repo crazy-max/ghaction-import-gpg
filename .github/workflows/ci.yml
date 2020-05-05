@@ -37,6 +37,8 @@ jobs:
         uses: ./
         with:
           git_gpgsign: true
+          git_committer_name: Joe Tester
+          git_committer_email: joe@foo.bar
         env:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY_TEST }}
           PASSPHRASE: ${{ secrets.PASSPHRASE_TEST }}
