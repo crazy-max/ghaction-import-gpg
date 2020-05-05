@@ -1,6 +1,9 @@
 /.dev
-node_modules/
-lib
+/lib
+/node_modules/*
+!/node_modules/asn1.js/
+!/node_modules/bn.js/
+!/node_modules/minimalistic-assert.js/
 
 # Jetbrains
 /.idea
