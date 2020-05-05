@@ -23,7 +23,11 @@ const getGnupgHome = async (): Promise<string> => {
   if (process.env.GNUPGHOME) {
     return process.env.GNUPGHOME;
   }
-  return path.join(process.env.HOME || '', '.gnupg');
+  let homedir: string = path.join(process.env.HOME || '', '.gnupg');
+  if (os.platform() == 'win32' && !process.env.HOME) {
+    homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
+  }
+  return homedir;
 };
 
 const gpgConnectAgent = async (command: string): Promise<string> => {

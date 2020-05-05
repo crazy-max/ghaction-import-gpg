@@ -1010,23 +1010,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const git = __importStar(__webpack_require__(453));
 const gpg = __importStar(__webpack_require__(207));
 const openpgp = __importStar(__webpack_require__(781));
 const stateHelper = __importStar(__webpack_require__(153));
-const os_1 = __importDefault(__webpack_require__(87));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (os_1.default.platform() == 'win32') {
-                core.setFailed('Windows platform not supported');
-                return;
-            }
             if (!process.env.SIGNING_KEY) {
                 core.setFailed('Signing key required');
                 return;
@@ -1145,7 +1137,11 @@ const getGnupgHome = () => __awaiter(void 0, void 0, void 0, function* () {
     if (process.env.GNUPGHOME) {
         return process.env.GNUPGHOME;
     }
-    return path.join(process.env.HOME || '', '.gnupg');
+    let homedir = path.join(process.env.HOME || '', '.gnupg');
+    if (os.platform() == 'win32' && !process.env.HOME) {
+        homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
+    }
+    return homedir;
 });
 const gpgConnectAgent = (command) => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec(`gpg-connect-agent "${command}" /bye`, [], true).then(res => {

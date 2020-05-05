@@ -14,7 +14,7 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 ## Features
 
-* Works on Linux and MacOS [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
+* Works on Linux, MacOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
 * Enable signing for Git commits and tags
 * Configure and check committer info against GPG key
