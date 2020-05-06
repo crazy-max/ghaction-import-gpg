@@ -15,10 +15,8 @@ async function run(): Promise<void> {
     const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
     const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
     const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
-    const git_committer_name: string =
-      core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
-    const git_committer_email: string =
-      core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
+    const git_committer_name: string = core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
+    const git_committer_email: string = core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
 
     core.info('📣 GnuPG info');
     const version = await gpg.getVersion();

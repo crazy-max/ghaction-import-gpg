@@ -39,12 +39,7 @@ export const readPrivateKey = async (armoredText: string): Promise<PrivateKey> =
   };
 };
 
-export const generateKeyPair = async (
-  name: string,
-  email: string,
-  passphrase: string,
-  numBits: number = 4096
-): Promise<KeyPair> => {
+export const generateKeyPair = async (name: string, email: string, passphrase: string, numBits: number = 4096): Promise<KeyPair> => {
   const keyPair = await openpgp.generateKey({
     userIds: [{name: name, email: email}],
     numBits,

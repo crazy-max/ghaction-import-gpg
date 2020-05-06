@@ -985,7 +985,7 @@ exports.IsPost = !!process.env['STATE_isPost'];
 if (!exports.IsPost) {
     coreCommand.issueCommand('save-state', { name: 'isPost' }, 'true');
 }
-
+//# sourceMappingURL=state-helper.js.map
 
 /***/ }),
 
@@ -1114,7 +1114,7 @@ if (!stateHelper.IsPost) {
 else {
     cleanup();
 }
-
+//# sourceMappingURL=main.js.map
 
 /***/ }),
 
@@ -1245,9 +1245,7 @@ exports.importKey = (armoredText) => __awaiter(void 0, void 0, void 0, function*
     });
 });
 exports.getKeygrip = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec
-        .exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true)
-        .then(res => {
+    return yield exec.exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
         }
@@ -1289,7 +1287,7 @@ exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function*
 exports.killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
     yield gpgConnectAgent('KILLAGENT');
 });
-
+//# sourceMappingURL=gpg.js.map
 
 /***/ }),
 
@@ -1442,7 +1440,7 @@ function setConfig(key, value) {
     });
 }
 exports.setConfig = setConfig;
-
+//# sourceMappingURL=git.js.map
 
 /***/ }),
 
@@ -45691,7 +45689,7 @@ exports.generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter
         privateKey: keyPair.privateKeyArmored.replace(/\r\n/g, '\n').trim()
     };
 });
-
+//# sourceMappingURL=openpgp.js.map
 
 /***/ }),
 
@@ -45740,7 +45738,7 @@ exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0,
         stderr: stderr.trim()
     };
 });
-
+//# sourceMappingURL=exec.js.map
 
 /***/ }),
 

@@ -124,21 +124,19 @@ export const importKey = async (armoredText: string): Promise<string> => {
 };
 
 export const getKeygrip = async (fingerprint: string): Promise<string> => {
-  return await exec
-    .exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true)
-    .then(res => {
-      if (res.stderr != '' && !res.success) {
-        throw new Error(res.stderr);
+  return await exec.exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true).then(res => {
+    if (res.stderr != '' && !res.success) {
+      throw new Error(res.stderr);
+    }
+    let keygrip: string = '';
+    for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
+      if (line.startsWith('grp')) {
+        keygrip = line.replace(/(grp|:)/g, '').trim();
+        break;
       }
-      let keygrip: string = '';
-      for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
-        if (line.startsWith('grp')) {
-          keygrip = line.replace(/(grp|:)/g, '').trim();
-          break;
-        }
-      }
-      return keygrip;
-    });
+    }
+    return keygrip;
+  });
 };
 
 export const configureAgent = async (config: string): Promise<void> => {
