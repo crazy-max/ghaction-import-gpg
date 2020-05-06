@@ -16,7 +16,7 @@
 
 * Configure and check committer email against GPG user address
 * Fix code transpilation (#9)
-* Bump deps
+* Update deps
 
 ## 1.0.0 (2020/05/04)
 

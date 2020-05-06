@@ -23,17 +23,6 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Build
-        run: |
-          npm install
-          npm run build
-          env|sort
-      -
-        name: Env
-        shell: bash
-        run: |
-          env|sort
-      -
         name: Import GPG private key
         uses: ./
         with:
