@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 (2020/05/07)
+
+* Add `fingerprint`, `keyid` and `email` outputs
+* Cleanup local paths from extra fields
+
 ## 1.3.0 (2020/05/06)
 
 * Add `git_tag_gpgsign` and `git_push_gpgsign` inputs
