@@ -3,7 +3,9 @@ name: master
 on:
   push:
     branches:
-      - master
+      - 'master'
+    paths-ignore:
+      - '**.md'
 
 jobs:
   prune:

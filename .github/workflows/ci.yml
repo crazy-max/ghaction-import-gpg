@@ -1,12 +1,14 @@
 name: ci
 
 on:
-  pull_request:
-    branches:
-      - master
   push:
     branches:
-      - master
+      - 'master'
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
 
 jobs:
   ci:
