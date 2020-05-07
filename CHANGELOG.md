@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1 (2020/05/07)
+
+* Update README
+
 ## 1.4.0 (2020/05/07)
 
 * Add `fingerprint`, `keyid` and `email` outputs
