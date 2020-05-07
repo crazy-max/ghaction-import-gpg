@@ -1054,11 +1054,15 @@ function run() {
                 core.info('📌 Getting keygrip');
                 const keygrip = yield gpg.getKeygrip(privateKey.fingerprint);
                 core.debug(`${keygrip}`);
-                core.info('🔓 Preset passphrase');
+                core.info('🔓 Presetting passphrase');
                 yield gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
                     core.debug(stdout);
                 });
             }
+            core.info('🛒 Setting outputs...');
+            core.setOutput('fingerprint', privateKey.fingerprint);
+            core.setOutput('keyid', privateKey.keyID);
+            core.setOutput('email', privateKey.email);
             if (git_user_signingkey) {
                 core.info('🔐 Setting GPG signing keyID for this Git repository');
                 yield git.setConfig('user.signingkey', privateKey.keyID);

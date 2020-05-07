@@ -1,6 +1,6 @@
 {
   "name": "import-gpg",
-  "description": "GitHub Action to easily import your GPG key to sign commits and tags",
+  "description": "GitHub Action to easily import a GPG key",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc && ncc build",
@@ -25,7 +25,6 @@
   "dependencies": {
     "@actions/core": "^1.2.3",
     "@actions/exec": "^1.0.4",
-    "@actions/github": "^2.1.1",
     "addressparser": "^1.0.1",
     "openpgp": "^4.10.4"
   },

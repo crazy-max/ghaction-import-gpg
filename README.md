@@ -7,7 +7,7 @@
 
 ## About
 
-GitHub Action to easily import your GPG key to sign commits and tags.
+GitHub Action to easily import a GPG key.
 
 If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitHub Actions!
 
@@ -17,19 +17,19 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 * Works on Linux, MacOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
-* Enable signing for Git commits and tags
-* Configure and check committer info against GPG key
 * Purge imported GPG key, cache information and kill agent from runner
+* (Git) Enable signing for Git commits, tags and pushes
+* (Git) Configure and check committer info against GPG key
 
 ## Usage
 
-On your local machine, export the GPG private key as an ASCII armored version:
+First, export the GPG private key as an ASCII armored version:
 
 ```shell
 gpg --armor --export-secret-key --output key.pgp joe@foo.bar
 ```
 
-Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with your `PASSPHRASE` if applicable.
+Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
 
 ```yaml
 name: import-gpg
@@ -70,14 +70,26 @@ jobs:
 
 Following inputs can be used as `step.with` keys
 
-| Name                   | Type    | Description                                              |
-|------------------------|---------|----------------------------------------------------------|
-| `git_user_signingkey`  | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
-| `git_commit_gpgsign`   | Bool    | Sign all commits automatically. `git_user_signingkey` needs to be enabled. (default `false`) |
-| `git_tag_gpgsign`      | Bool    | Sign all tags automatically. `git_user_signingkey` needs to be enabled. (default `false`) |
-| `git_push_gpgsign`     | Bool    | Sign all pushes automatically. `git_user_signingkey` needs to be enabled. (default `false`) |
-| `git_committer_name`   | String  | Commit author's name (default [GITHUB_ACTOR](https://help.github.com/en/github/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables) or `github-actions`) |
-| `git_committer_email`  | String  | Commit author's email (default `<committer_name>@users.noreply.github.com`) |
+| Name                                  | Type   | Description                                    |
+|--------------------------------------|---------|------------------------------------------------|
+| `git_user_signingkey`                | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
+| `git_commit_gpgsign` :pushpin:       | Bool    | Sign all commits automatically. (default `false`) |
+| `git_tag_gpgsign` :pushpin:          | Bool    | Sign all tags automatically. (default `false`) |
+| `git_push_gpgsign` :pushpin:         | Bool    | Sign all pushes automatically. (default `false`) |
+| `git_committer_name` :pushpin:       | String  | Set commit author's name (default [GITHUB_ACTOR](https://help.github.com/en/github/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables) or `github-actions`) |
+| `git_committer_email` :pushpin:      | String  | Set commit author's email (default `<committer_name>@users.noreply.github.com`) |
+
+> :pushpin: `git_user_signingkey` needs to be enabled for these inputs to be used.
+
+### outputs
+
+Following outputs are available
+
+| Name          | Type    | Description                           |
+|---------------|---------|---------------------------------------|
+| `fingerprint` | String  | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html)) |
+| `keyid`       | String  | Low 64 bits of the X.509 certificate SHA-1 fingerprint |
+| `email`       | String  | Email address associated with the GPG key |
 
 ### environment variables
 
@@ -86,7 +98,7 @@ Following environment variables can be used as `step.env` keys
 | Name               | Description                           |
 |--------------------|---------------------------------------|
 | `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version |
-| `PASSPHRASE`       | Passphrase of your `GPG_PRIVATE_KEY` key if setted |
+| `PASSPHRASE`       | Passphrase of the `GPG_PRIVATE_KEY` key if setted |
 
 ## How can I help?
 

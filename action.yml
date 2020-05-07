@@ -1,6 +1,6 @@
 # https://help.github.com/en/articles/metadata-syntax-for-github-actions
 name: 'Import GPG'
-description: 'GitHub Action to easily import your GPG key to sign commits and tags'
+description: 'GitHub Action to easily import a GPG key'
 author: 'crazy-max'
 branding:
   color: 'yellow'
@@ -10,19 +10,33 @@ inputs:
   git_user_signingkey:
     description: 'Set GPG signing keyID for this Git repository'
     default: 'false'
+    required: false
   git_commit_gpgsign:
     description: 'Sign all commits automatically. git_user_signingkey needs to be enabled'
     default: 'false'
+    required: false
   git_tag_gpgsign:
     description: 'Sign all tags automatically. git_user_signingkey needs to be enabled'
     default: 'false'
+    required: false
   git_push_gpgsign:
     description: 'Sign all pushes automatically. git_user_signingkey needs to be enabled'
     default: 'false'
+    required: false
   git_committer_name:
     description: 'Commit author''s name'
+    required: false
   git_committer_email:
     description: 'Commit author''s email'
+    required: false
+
+outputs:
+  fingerprint:
+    description: 'Fingerprint of the GPG key (recommended as user ID)'
+  keyid:
+    description: 'Low 64 bits of the X.509 certificate SHA-1 fingerprint'
+  email:
+    description: 'Email address associated with the GPG key'
 
 runs:
   using: 'node12'
