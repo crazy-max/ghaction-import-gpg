@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Import GPG private key
+        id: import_gpg
         uses: ./
         with:
           git_user_signingkey: true
@@ -35,3 +36,9 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY_TEST }}
           PASSPHRASE: ${{ secrets.PASSPHRASE_TEST }}
+      -
+        name: GPG user IDs
+        run: |
+          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
+          echo "email:       ${{ steps.import_gpg.outputs.email }}"
