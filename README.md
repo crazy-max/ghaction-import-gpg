@@ -47,6 +47,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Import GPG key
+        id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v1
         with:
           git_user_signingkey: true
@@ -55,6 +56,12 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      -
+        name: GPG user IDs
+        run: |
+          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
+          echo "email:       ${{ steps.import_gpg.outputs.email }}"
       -
         name: Sign commit and push changes
         run: |
