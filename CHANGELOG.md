@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.2 (2020/05/11)
+
+* Clean code
+* Update deps
+
 ## 1.4.1 (2020/05/07)
 
 * Update README
