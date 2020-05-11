@@ -1432,12 +1432,6 @@ const git = (args = []) => __awaiter(void 0, void 0, void 0, function* () {
         return res.stdout.trim();
     });
 });
-function getConfig(key) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield git(['config', key]);
-    });
-}
-exports.getConfig = getConfig;
 function setConfig(key, value) {
     return __awaiter(this, void 0, void 0, function* () {
         yield git(['config', key, value]);

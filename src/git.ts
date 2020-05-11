@@ -9,10 +9,6 @@ const git = async (args: string[] = []): Promise<string> => {
   });
 };
 
-export async function getConfig(key: string): Promise<string> {
-  return await git(['config', key]);
-}
-
 export async function setConfig(key: string, value: string): Promise<void> {
   await git(['config', key, value]);
 }
