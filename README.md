@@ -11,7 +11,7 @@ GitHub Action to easily import a GPG key.
 
 If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitHub Actions!
 
-![Import GPG key](.res/ghaction-import-gpg.png)
+![Import GPG](.github/ghaction-import-gpg.png)
 
 ## Features
 
@@ -104,7 +104,7 @@ Following environment variables can be used as `step.env` keys
 
 | Name               | Description                           |
 |--------------------|---------------------------------------|
-| `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version |
+| `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version (**required**) |
 | `PASSPHRASE`       | Passphrase of the `GPG_PRIVATE_KEY` key if setted |
 
 ## How can I help?
