@@ -13,6 +13,19 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 ![Import GPG](.github/ghaction-import-gpg.png)
 
+___
+
+* [Features](#features)
+* [Prerequisites](#prerequisites)
+* [Usage](#usage)
+  * [Workflow](#workflow)
+  * [Sign commits](#sign-commits)
+* [Customizing](#customizing)
+  * [inputs](#inputs)
+  * [environment variables](#environment-variables)
+* [How can I help?](#how-can-i-help)
+* [License](#license)
+
 ## Features
 
 * Works on Linux, MacOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
@@ -21,7 +34,7 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 * (Git) Enable signing for Git commits, tags and pushes
 * (Git) Configure and check committer info against GPG key
 
-## Usage
+## Prerequisites
 
 First, export the GPG private key as an ASCII armored version:
 
@@ -30,6 +43,10 @@ gpg --armor --export-secret-key --output key.pgp joe@foo.bar
 ```
 
 Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
+
+## Usage
+
+### Workflow
 
 ```yaml
 name: import-gpg
@@ -49,10 +66,6 @@ jobs:
         name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v1
-        with:
-          git_user_signingkey: true
-          git_commit_gpgsign: true
-          git_tag_gpgsign: true
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
@@ -62,6 +75,33 @@ jobs:
           echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
           echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
           echo "email:       ${{ steps.import_gpg.outputs.email }}"
+```
+
+### Sign commits
+
+```yaml
+name: import-gpg
+
+on:
+  push:
+    branches: master
+
+jobs:
+  sign-commit:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v1
+        with:
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
       -
         name: Sign commit and push changes
         run: |
