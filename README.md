@@ -124,7 +124,7 @@ Following inputs can be used as `step.with` keys
 | `git_tag_gpgsign` :pushpin:          | Bool    | Sign all tags automatically. (default `false`) |
 | `git_push_gpgsign` :pushpin:         | Bool    | Sign all pushes automatically. (default `false`) |
 | `git_committer_name` :pushpin:       | String  | Set commit author's name (default [GITHUB_ACTOR](https://help.github.com/en/github/automating-your-workflow-with-github-actions/using-environment-variables#default-environment-variables) or `github-actions`) |
-| `git_committer_email` :pushpin:      | String  | Set commit author's email (default `<committer_name>@users.noreply.github.com`) |
+| `git_committer_email` :pushpin:      | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
 
 > :pushpin: `git_user_signingkey` needs to be enabled for these inputs to be used.
 
