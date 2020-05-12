@@ -57,15 +57,15 @@ async function run(): Promise<void> {
     core.info('🛒 Setting outputs...');
     core.setOutput('fingerprint', privateKey.fingerprint);
     core.setOutput('keyid', privateKey.keyID);
-    core.setOutput('email', privateKey.email);
     core.setOutput('name', privateKey.name);
+    core.setOutput('email', privateKey.email);
 
     if (git_user_signingkey) {
       core.info('🔐 Setting GPG signing keyID for this Git repository');
       await git.setConfig('user.signingkey', privateKey.keyID);
 
-      const user_email = git_committer_email || privateKey.email
-      const user_name = git_committer_name || privateKey.name
+      const user_email = git_committer_email || privateKey.email;
+      const user_name = git_committer_name || privateKey.name;
 
       if (git_committer_email != privateKey.email) {
         core.setFailed('Committer email does not match GPG key user address');
