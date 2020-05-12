@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0 (2020/05/13)
+
+* Use GPG key name/email as default values (#13)
+* Centralize test key/passphrase
+
 ## 1.4.2 (2020/05/11)
 
 * Clean code
