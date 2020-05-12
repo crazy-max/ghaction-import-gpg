@@ -25,6 +25,13 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
+        name: Read test env variable
+        uses: pCYSl5EDgo/cat@master
+        id: test-key
+        with:
+          path: ./.github/test-key.pgp
+
+      -
         name: Import GPG private key
         id: import_gpg
         uses: ./
@@ -36,8 +43,8 @@ jobs:
           git_committer_name: Joe Tester
           git_committer_email: joe@foo.bar
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY_TEST }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE_TEST }}
+          GPG_PRIVATE_KEY: ${{ steps.test-key.outputs.text }}
+          PASSPHRASE: 'with stupid passphrase'
       -
         name: GPG user IDs
         run: |

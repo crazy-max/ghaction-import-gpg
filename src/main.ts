@@ -15,8 +15,8 @@ async function run(): Promise<void> {
     const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
     const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
     const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
-    const git_committer_name: string = core.getInput('git_committer_name') || process.env['GITHUB_ACTOR'] || 'github-actions';
-    const git_committer_email: string = core.getInput('git_committer_email') || `${git_committer_name}@users.noreply.github.com`;
+    const git_committer_name: string = core.getInput('git_committer_name');
+    const git_committer_email: string = core.getInput('git_committer_email');
 
     core.info('📣 GnuPG info');
     const version = await gpg.getVersion();
@@ -58,19 +58,23 @@ async function run(): Promise<void> {
     core.setOutput('fingerprint', privateKey.fingerprint);
     core.setOutput('keyid', privateKey.keyID);
     core.setOutput('email', privateKey.email);
+    core.setOutput('name', privateKey.name);
 
     if (git_user_signingkey) {
       core.info('🔐 Setting GPG signing keyID for this Git repository');
       await git.setConfig('user.signingkey', privateKey.keyID);
+
+      const user_email = git_committer_email || privateKey.email
+      const user_name = git_committer_name || privateKey.name
 
       if (git_committer_email != privateKey.email) {
         core.setFailed('Committer email does not match GPG key user address');
         return;
       }
 
-      core.info(`🔨 Configuring Git committer (${git_committer_name} <${git_committer_email}>)`);
-      await git.setConfig('user.name', git_committer_name);
-      await git.setConfig('user.email', git_committer_email);
+      core.info(`🔨 Configuring Git committer (${user_name} <${user_email}>)`);
+      await git.setConfig('user.name', user_name);
+      await git.setConfig('user.email', user_email);
 
       if (git_commit_gpgsign) {
         core.info('💎 Sign all commits automatically');
