@@ -1069,7 +1069,7 @@ function run() {
                 yield git.setConfig('user.signingkey', privateKey.keyID);
                 const user_email = git_committer_email || privateKey.email;
                 const user_name = git_committer_name || privateKey.name;
-                if (git_committer_email != privateKey.email) {
+                if (user_email != privateKey.email) {
                     core.setFailed('Committer email does not match GPG key user address');
                     return;
                 }
