@@ -42,8 +42,6 @@ jobs:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
           git_push_gpgsign: true
-          git_committer_name: Joe Tester
-          git_committer_email: joe@foo.bar
         env:
           GPG_PRIVATE_KEY: ${{ steps.test.outputs.pgp }}
           PASSPHRASE: ${{ steps.test.outputs.passphrase }}
