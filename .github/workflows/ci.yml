@@ -30,7 +30,7 @@ jobs:
         id: test
         with:
           script: |
-            import fs = require('fs');
+            const fs = require('fs');
             core.setOutput('pgp', fs.readFileSync('.github/test-key.pgp', {encoding: 'utf8'}));
             core.setOutput('passphrase', fs.readFileSync('.github/test-key.pass', {encoding: 'utf8'}));
       -
