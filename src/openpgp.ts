@@ -18,7 +18,8 @@ export const readPrivateKey = async (armoredText: string): Promise<PrivateKey> =
   const {
     keys: [privateKey],
     err: err
-  } = await openpgp.key.readArmored(armoredText);
+  } = await openpgp.key.readArmored(isArmored(armoredText) ? armoredText : Buffer.from(armoredText, 'base64').toString());
+
   if (err?.length) {
     throw err[0];
   }
@@ -51,3 +52,5 @@ export const generateKeyPair = async (name: string, email: string, passphrase: s
     privateKey: keyPair.privateKeyArmored.replace(/\r\n/g, '\n').trim()
   };
 };
+
+const isArmored = (text: string) => text.trimLeft().startsWith('---');

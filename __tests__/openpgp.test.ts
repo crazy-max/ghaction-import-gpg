@@ -116,8 +116,16 @@ PejgXO0uIRolYQ3sz2tMGhx1MfBqH64=
 
 describe('openpgp', () => {
   describe('readPrivateKey', () => {
-    it('returns a PGP private key', async () => {
+    it('returns a PGP private key from an armored string', async () => {
       await openpgp.readPrivateKey(userInfo.pgp).then(privateKey => {
+        expect(privateKey.keyID).toEqual(userInfo.keyID);
+        expect(privateKey.name).toEqual(userInfo.name);
+        expect(privateKey.email).toEqual(userInfo.email);
+        expect(privateKey.fingerprint).toEqual(userInfo.fingerprint);
+      });
+    });
+    it('returns a PGP private key from a base64 armored string', async () => {
+      await openpgp.readPrivateKey(Buffer.from(userInfo.pgp).toString('base64')).then(privateKey => {
         expect(privateKey.keyID).toEqual(userInfo.keyID);
         expect(privateKey.name).toEqual(userInfo.name);
         expect(privateKey.email).toEqual(userInfo.email);
