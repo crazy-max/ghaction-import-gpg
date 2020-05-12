@@ -118,15 +118,15 @@ jobs:
 Following inputs can be used as `step.with` keys
 
 | Name                                  | Type   | Description                                    |
-|--------------------------------------|---------|------------------------------------------------|
-| `git_user_signingkey`                | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
-| `git_commit_gpgsign` :pushpin:       | Bool    | Sign all commits automatically. (default `false`) |
-| `git_tag_gpgsign` :pushpin:          | Bool    | Sign all tags automatically. (default `false`) |
-| `git_push_gpgsign` :pushpin:         | Bool    | Sign all pushes automatically. (default `false`) |
-| `git_committer_name` :pushpin:       | String  | Set commit author's name (defaults to the name associated with the GPG key) |
-| `git_committer_email` :pushpin:      | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
+|---------------------------------------|---------|------------------------------------------------|
+| `git_user_signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
+| `git_commit_gpgsign`**¹**             | Bool    | Sign all commits automatically. (default `false`) |
+| `git_tag_gpgsign`**¹**                | Bool    | Sign all tags automatically. (default `false`) |
+| `git_push_gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
+| `git_committer_name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
+| `git_committer_email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
 
-> :pushpin: `git_user_signingkey` needs to be enabled for these inputs to be used.
+> **¹** `git_user_signingkey` needs to be enabled for these inputs to be used.
 
 ### outputs
 
