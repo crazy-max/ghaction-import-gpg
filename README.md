@@ -137,6 +137,7 @@ Following outputs are available
 | `fingerprint` | String  | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html)) |
 | `keyid`       | String  | Low 64 bits of the X.509 certificate SHA-1 fingerprint |
 | `email`       | String  | Email address associated with the GPG key |
+| `name`       | String  | Name associated with the GPG key |
 
 ### environment variables
 
