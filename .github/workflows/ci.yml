@@ -25,7 +25,7 @@ jobs:
         name: Checkout
         uses: actions/checkout@v2
       -
-        name: Test test key and passphrase
+        name: Get test key and passphrase
         uses: actions/github-script@0.9.0
         id: test
         with:
@@ -52,4 +52,5 @@ jobs:
         run: |
           echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
           echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
+          echo "name:        ${{ steps.import_gpg.outputs.name }}"
           echo "email:       ${{ steps.import_gpg.outputs.email }}"
