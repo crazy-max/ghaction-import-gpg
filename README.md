@@ -36,13 +36,23 @@ ___
 
 ## Prerequisites
 
-First, export the GPG private key as an ASCII armored version:
+First, export the GPG private key as an ASCII armored version to your clipboard:
 
 ```shell
-gpg --armor --export-secret-key --output key.pgp joe@foo.bar
+# macOS
+gpg --armor --export-secret-key joe@foo.bar | pbcopy
+
+# Ubuntu (assuming GNU base64)
+gpg --armor --export-secret-key joe@foo.bar -w0 | xclip
+
+# Arch
+gpg --armor --export-secret-key joe@foo.bar | sed -z 's;\n;;g' | xclip -selection clipboard -i
+
+# FreeBSD (assuming BSD base64)
+gpg --armor --export-secret-key joe@foo.bar | xclip
 ```
 
-Copy the content of `key.pgp` file as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
+Paste your clipboard as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
 
 ## Usage
 
@@ -141,11 +151,11 @@ Following outputs are available
 
 ### environment variables
 
-Following environment variables can be used as `step.env` keys
+Following environment variables must be used as `step.env` keys
 
 | Name               | Description                           |
 |--------------------|---------------------------------------|
-| `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version (**required**) |
+| `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
 | `PASSPHRASE`       | Passphrase of the `GPG_PRIVATE_KEY` key if setted |
 
 ## How can I help?
