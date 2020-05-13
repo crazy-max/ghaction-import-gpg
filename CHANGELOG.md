@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0 (2020/05/13)
+
+* Allow importing GPG key as a base64 string (#14)
+
 ## 2.0.1 (2020/05/13)
 
 * Committer email does not match
