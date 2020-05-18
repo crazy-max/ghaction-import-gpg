@@ -32,6 +32,7 @@ jobs:
           script: |
             const fs = require('fs');
             core.setOutput('pgp', fs.readFileSync('.github/test-key.pgp', {encoding: 'utf8'}));
+            core.setOutput('pgp-base64', fs.readFileSync('.github/test-key-base64.pgp', {encoding: 'utf8'}));
             core.setOutput('passphrase', fs.readFileSync('.github/test-key.pass', {encoding: 'utf8'}));
       -
         name: Import GPG private key
@@ -52,3 +53,22 @@ jobs:
           echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
           echo "name:        ${{ steps.import_gpg.outputs.name }}"
           echo "email:       ${{ steps.import_gpg.outputs.email }}"
+      -
+        name: Import GPG private key in base64 format
+        id: import_gpg_base64
+        uses: ./
+        with:
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
+          git_push_gpgsign: true
+        env:
+          GPG_PRIVATE_KEY: ${{ steps.test.outputs.pgp-base64 }}
+          PASSPHRASE: ${{ steps.test.outputs.passphrase }}
+      -
+        name: GPG user IDs
+        run: |
+          echo "fingerprint: ${{ steps.import_gpg_base64.outputs.fingerprint }}"
+          echo "keyid:       ${{ steps.import_gpg_base64.outputs.keyid }}"
+          echo "name:        ${{ steps.import_gpg_base64.outputs.name }}"
+          echo "email:       ${{ steps.import_gpg_base64.outputs.email }}"
