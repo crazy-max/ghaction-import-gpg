@@ -1270,10 +1270,11 @@ exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
         };
     });
 });
-exports.importKey = (armoredText) => __awaiter(void 0, void 0, void 0, function* () {
+exports.importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const keyFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'ghaction-import-gpg-'));
     const keyPath = `${keyFolder}/key.pgp`;
-    fs.writeFileSync(keyPath, armoredText, { mode: 0o600 });
+    const armored = key.trimLeft().startsWith('---') ? key : Buffer.from(key, 'base64').toString();
+    fs.writeFileSync(keyPath, armored, { mode: 0o600 });
     return yield exec
         .exec('gpg', ['--import', '--batch', '--yes', keyPath], true)
         .then(res => {
