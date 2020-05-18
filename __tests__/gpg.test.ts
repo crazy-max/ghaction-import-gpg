@@ -40,8 +40,14 @@ describe('gpg', () => {
   });
 
   describe('importKey', () => {
-    it('imports key to GnuPG', async () => {
+    it('imports key (as armored string) to GnuPG', async () => {
       await gpg.importKey(userInfo.pgp).then(output => {
+        console.log(output);
+        expect(output).not.toEqual('');
+      });
+    });
+    it('imports key (as base64 string) to GnuPG', async () => {
+      await gpg.importKey(Buffer.from(userInfo.pgp).toString('base64')).then(output => {
         console.log(output);
         expect(output).not.toEqual('');
       });
