@@ -6,6 +6,10 @@ const userInfo = {
     encoding: 'utf8',
     flag: 'r'
   }),
+  pgp_base64: fs.readFileSync('.github/test-key-base64.pgp', {
+    encoding: 'utf8',
+    flag: 'r'
+  }),
   passphrase: fs.readFileSync('.github/test-key.pass', {
     encoding: 'utf8',
     flag: 'r'
@@ -28,7 +32,7 @@ describe('openpgp', () => {
       });
     });
     it('returns a PGP private key from a base64 armored string', async () => {
-      await openpgp.readPrivateKey(Buffer.from(userInfo.pgp).toString('base64')).then(privateKey => {
+      await openpgp.readPrivateKey(userInfo.pgp_base64).then(privateKey => {
         expect(privateKey.keyID).toEqual(userInfo.keyID);
         expect(privateKey.name).toEqual(userInfo.name);
         expect(privateKey.email).toEqual(userInfo.email);
@@ -45,5 +49,18 @@ describe('openpgp', () => {
         expect(keyPair.privateKey).not.toBeUndefined();
       });
     }, 30000);
+  });
+
+  describe('isArmored', () => {
+    it('returns true for armored key string', async () => {
+      await openpgp.isArmored(userInfo.pgp).then(armored => {
+        expect(armored).toEqual(true);
+      });
+    });
+    it('returns false for base64 key string', async () => {
+      await openpgp.isArmored(userInfo.pgp_base64).then(armored => {
+        expect(armored).toEqual(false);
+      });
+    });
   });
 });

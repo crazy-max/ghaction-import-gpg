@@ -6,6 +6,10 @@ const userInfo = {
     encoding: 'utf8',
     flag: 'r'
   }),
+  pgp_base64: fs.readFileSync('.github/test-key-base64.pgp', {
+    encoding: 'utf8',
+    flag: 'r'
+  }),
   passphrase: fs.readFileSync('.github/test-key.pass', {
     encoding: 'utf8',
     flag: 'r'
@@ -47,7 +51,7 @@ describe('gpg', () => {
       });
     });
     it('imports key (as base64 string) to GnuPG', async () => {
-      await gpg.importKey(Buffer.from(userInfo.pgp).toString('base64')).then(output => {
+      await gpg.importKey(userInfo.pgp_base64).then(output => {
         console.log(output);
         expect(output).not.toEqual('');
       });

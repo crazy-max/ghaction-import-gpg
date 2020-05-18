@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as exec from './exec';
+import * as openpgp from './openpgp';
 
 export const agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
@@ -105,10 +106,7 @@ export const getDirs = async (): Promise<Dirs> => {
 export const importKey = async (key: string): Promise<string> => {
   const keyFolder: string = fs.mkdtempSync(path.join(os.tmpdir(), 'ghaction-import-gpg-'));
   const keyPath: string = `${keyFolder}/key.pgp`;
-
-  const armored: string = key.trimLeft().startsWith('---') ? key : Buffer.from(key, 'base64').toString();
-
-  fs.writeFileSync(keyPath, armored, {mode: 0o600});
+  fs.writeFileSync(keyPath, (await openpgp.isArmored(key)) ? key : Buffer.from(key, 'base64').toString(), {mode: 0o600});
 
   return await exec
     .exec('gpg', ['--import', '--batch', '--yes', keyPath], true)

@@ -14,11 +14,11 @@ export interface KeyPair {
   privateKey: string;
 }
 
-export const readPrivateKey = async (armoredText: string): Promise<PrivateKey> => {
+export const readPrivateKey = async (key: string): Promise<PrivateKey> => {
   const {
     keys: [privateKey],
     err: err
-  } = await openpgp.key.readArmored(isArmored(armoredText) ? armoredText : Buffer.from(armoredText, 'base64').toString());
+  } = await openpgp.key.readArmored((await isArmored(key)) ? key : Buffer.from(key, 'base64').toString());
 
   if (err?.length) {
     throw err[0];
@@ -53,4 +53,6 @@ export const generateKeyPair = async (name: string, email: string, passphrase: s
   };
 };
 
-const isArmored = (text: string) => text.trimLeft().startsWith('---');
+export const isArmored = async (text: string): Promise<boolean> => {
+  return text.trimLeft().startsWith('---');
+};
