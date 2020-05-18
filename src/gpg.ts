@@ -102,10 +102,13 @@ export const getDirs = async (): Promise<Dirs> => {
   });
 };
 
-export const importKey = async (armoredText: string): Promise<string> => {
+export const importKey = async (key: string): Promise<string> => {
   const keyFolder: string = fs.mkdtempSync(path.join(os.tmpdir(), 'ghaction-import-gpg-'));
   const keyPath: string = `${keyFolder}/key.pgp`;
-  fs.writeFileSync(keyPath, armoredText, {mode: 0o600});
+
+  const armored: string = key.trimLeft().startsWith('---') ? key : Buffer.from(key, 'base64').toString();
+
+  fs.writeFileSync(keyPath, armored, {mode: 0o600});
 
   return await exec
     .exec('gpg', ['--import', '--batch', '--yes', keyPath], true)
