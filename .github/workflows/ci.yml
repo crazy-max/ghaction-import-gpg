@@ -11,7 +11,7 @@ on:
       - '**.md'
 
 jobs:
-  ci:
+  armored:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -32,10 +32,9 @@ jobs:
           script: |
             const fs = require('fs');
             core.setOutput('pgp', fs.readFileSync('.github/test-key.pgp', {encoding: 'utf8'}));
-            core.setOutput('pgp-base64', fs.readFileSync('.github/test-key-base64.pgp', {encoding: 'utf8'}));
             core.setOutput('passphrase', fs.readFileSync('.github/test-key.pass', {encoding: 'utf8'}));
       -
-        name: Import GPG private key
+        name: Import GPG
         id: import_gpg
         uses: ./
         with:
@@ -53,9 +52,32 @@ jobs:
           echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
           echo "name:        ${{ steps.import_gpg.outputs.name }}"
           echo "email:       ${{ steps.import_gpg.outputs.email }}"
+
+  base64:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+    steps:
       -
-        name: Import GPG private key in base64 format
-        id: import_gpg_base64
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Get test key and passphrase
+        uses: actions/github-script@0.9.0
+        id: test
+        with:
+          script: |
+            const fs = require('fs');
+            core.setOutput('pgp-base64', fs.readFileSync('.github/test-key-base64.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('.github/test-key.pass', {encoding: 'utf8'}));
+      -
+        name: Import GPG
+        id: import_gpg
         uses: ./
         with:
           git_user_signingkey: true
@@ -68,7 +90,7 @@ jobs:
       -
         name: GPG user IDs
         run: |
-          echo "fingerprint: ${{ steps.import_gpg_base64.outputs.fingerprint }}"
-          echo "keyid:       ${{ steps.import_gpg_base64.outputs.keyid }}"
-          echo "name:        ${{ steps.import_gpg_base64.outputs.name }}"
-          echo "email:       ${{ steps.import_gpg_base64.outputs.email }}"
+          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
+          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
+          echo "name:        ${{ steps.import_gpg.outputs.name }}"
+          echo "email:       ${{ steps.import_gpg.outputs.email }}"
