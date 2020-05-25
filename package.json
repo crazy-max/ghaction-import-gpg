@@ -32,7 +32,7 @@
     "@types/jest": "^25.2.3",
     "@types/node": "^14.0.5",
     "@types/openpgp": "^4.4.12",
-    "@zeit/ncc": "^0.22.2",
+    "@zeit/ncc": "^0.22.3",
     "jest": "^25.5.4",
     "jest-circus": "^25.5.4",
     "jest-runtime": "^25.5.4",
