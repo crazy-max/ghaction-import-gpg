@@ -7,11 +7,11 @@ Contributions to this project are [released](https://help.github.com/articles/gi
 ## Submitting a pull request
 
 1. [Fork](https://github.com/crazy-max/ghaction-import-gpg/fork) and clone the repository
-2. Configure and install the dependencies: `npm install`
-3. Make sure the tests pass on your machine: `npm run test`
+2. Configure and install the dependencies: `yarn install`
+3. Make sure the tests pass on your machine: `yarn run test`
 4. Create a new branch: `git checkout -b my-branch-name`
 5. Make your change, add tests, and make sure the tests still pass
-6. Run pre-checkin: `npm run pre-checkin`
+6. Run pre-checkin: `yarn run pre-checkin`
 7. Push to your fork and [submit a pull request](https://github.com/crazy-max/ghaction-import-gpg/compare)
 8. Pat your self on the back and wait for your pull request to be reviewed and merged.
 
