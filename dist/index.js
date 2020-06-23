@@ -1070,11 +1070,14 @@ function run() {
             core.info(`Homedir    : ${dirs.homedir}`);
             core.info('🔮 Checking GPG private key');
             const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
-            core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
-            core.debug(`KeyID        : ${privateKey.keyID}`);
-            core.debug(`Name         : ${privateKey.name}`);
-            core.debug(`Email        : ${privateKey.email}`);
-            core.debug(`CreationTime : ${privateKey.creationTime}`);
+            core.debug(`Fingerprint     : ${privateKey.fingerprint}`);
+            core.debug(`KeyID           : ${privateKey.keyID}`);
+            core.debug(`Name            : ${privateKey.name}`);
+            core.debug(`Email           : ${privateKey.email}`);
+            core.debug(`CreationTime    : ${privateKey.creationTime}`);
+            if (process.env.FINGERPRINT) {
+                core.debug(`env.FINGERPRINT : ${process.env.FINGERPRINT}`);
+            }
             core.info('🔑 Importing GPG private key');
             yield gpg.importKey(process.env.GPG_PRIVATE_KEY).then(stdout => {
                 core.debug(stdout);
@@ -1083,15 +1086,28 @@ function run() {
                 core.info('⚙️ Configuring GnuPG agent');
                 yield gpg.configureAgent(gpg.agentConfig);
                 core.info('📌 Getting keygrip');
-                const keygrip = yield gpg.getKeygrip(privateKey.fingerprint);
-                core.debug(`${keygrip}`);
+                let keygrip;
+                if (process.env.FINGERPRINT) {
+                    // When a the usage of a subkey is required (e.g. no master secret key)
+                    keygrip = yield gpg.getKeygrip(process.env.FINGERPRINT);
+                    core.debug(`${keygrip}`);
+                }
+                else {
+                    keygrip = yield gpg.getKeygrip(privateKey.fingerprint);
+                    core.debug(`${keygrip}`);
+                }
                 core.info('🔓 Presetting passphrase');
                 yield gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
                     core.debug(stdout);
                 });
             }
             core.info('🛒 Setting outputs...');
-            core.setOutput('fingerprint', privateKey.fingerprint);
+            if (process.env.FINGERPRINT) {
+                core.setOutput('fingerprint', process.env.FINGERPRINT);
+            }
+            else {
+                core.setOutput('fingerprint', privateKey.fingerprint);
+            }
             core.setOutput('keyid', privateKey.keyID);
             core.setOutput('name', privateKey.name);
             core.setOutput('email', privateKey.email);
@@ -1134,8 +1150,13 @@ function cleanup() {
         }
         try {
             core.info('🚿 Removing keys');
-            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
-            yield gpg.deleteKey(privateKey.fingerprint);
+            if (process.env.FINGERPRINT) {
+                yield gpg.deleteKey(process.env.FINGERPRINT);
+            }
+            else {
+                const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
+                yield gpg.deleteKey(privateKey.fingerprint);
+            }
             core.info('💀 Killing GnuPG agent');
             yield gpg.killAgent();
         }
@@ -1302,8 +1323,13 @@ exports.getKeygrip = (fingerprint) => __awaiter(void 0, void 0, void 0, function
             throw new Error(res.stderr);
         }
         let keygrip = '';
+        let fpr_found = false;
         for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
-            if (line.startsWith('grp')) {
+            if (line.startsWith('fpr')) {
+                let fpr = line.replace(/(fpr|:)/g, '').trim();
+                fpr_found = fpr == fingerprint;
+            }
+            else if (fpr_found && line.startsWith('grp')) {
                 keygrip = line.replace(/(grp|:)/g, '').trim();
                 break;
             }

@@ -130,8 +130,12 @@ export const getKeygrip = async (fingerprint: string): Promise<string> => {
       throw new Error(res.stderr);
     }
     let keygrip: string = '';
+    let fpr_found: boolean = false;
     for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
-      if (line.startsWith('grp')) {
+      if (line.startsWith('fpr')) {
+        let fpr = line.replace(/(fpr|:)/g, '').trim();
+        fpr_found = fpr == fingerprint;
+      } else if (fpr_found && line.startsWith('grp')) {
         keygrip = line.replace(/(grp|:)/g, '').trim();
         break;
       }
