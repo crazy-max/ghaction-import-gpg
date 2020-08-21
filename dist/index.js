@@ -40,7 +40,7 @@ module.exports =
 /******/ 	// the startup function
 /******/ 	function startup() {
 /******/ 		// Load entry module and return exports
-/******/ 		return __webpack_require__(198);
+/******/ 		return __webpack_require__(109);
 /******/ 	};
 /******/
 /******/ 	// run startup
@@ -49,1114 +49,7 @@ module.exports =
 /************************************************************************/
 /******/ ({
 
-/***/ 1:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const childProcess = __webpack_require__(129);
-const path = __webpack_require__(622);
-const util_1 = __webpack_require__(669);
-const ioUtil = __webpack_require__(672);
-const exec = util_1.promisify(childProcess.exec);
-/**
- * Copies a file or folder.
- * Based off of shelljs - https://github.com/shelljs/shelljs/blob/9237f66c52e5daa40458f94f9565e18e8132f5a6/src/cp.js
- *
- * @param     source    source path
- * @param     dest      destination path
- * @param     options   optional. See CopyOptions.
- */
-function cp(source, dest, options = {}) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { force, recursive } = readCopyOptions(options);
-        const destStat = (yield ioUtil.exists(dest)) ? yield ioUtil.stat(dest) : null;
-        // Dest is an existing file, but not forcing
-        if (destStat && destStat.isFile() && !force) {
-            return;
-        }
-        // If dest is an existing directory, should copy inside.
-        const newDest = destStat && destStat.isDirectory()
-            ? path.join(dest, path.basename(source))
-            : dest;
-        if (!(yield ioUtil.exists(source))) {
-            throw new Error(`no such file or directory: ${source}`);
-        }
-        const sourceStat = yield ioUtil.stat(source);
-        if (sourceStat.isDirectory()) {
-            if (!recursive) {
-                throw new Error(`Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`);
-            }
-            else {
-                yield cpDirRecursive(source, newDest, 0, force);
-            }
-        }
-        else {
-            if (path.relative(source, newDest) === '') {
-                // a file cannot be copied to itself
-                throw new Error(`'${newDest}' and '${source}' are the same file`);
-            }
-            yield copyFile(source, newDest, force);
-        }
-    });
-}
-exports.cp = cp;
-/**
- * Moves a path.
- *
- * @param     source    source path
- * @param     dest      destination path
- * @param     options   optional. See MoveOptions.
- */
-function mv(source, dest, options = {}) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (yield ioUtil.exists(dest)) {
-            let destExists = true;
-            if (yield ioUtil.isDirectory(dest)) {
-                // If dest is directory copy src into dest
-                dest = path.join(dest, path.basename(source));
-                destExists = yield ioUtil.exists(dest);
-            }
-            if (destExists) {
-                if (options.force == null || options.force) {
-                    yield rmRF(dest);
-                }
-                else {
-                    throw new Error('Destination already exists');
-                }
-            }
-        }
-        yield mkdirP(path.dirname(dest));
-        yield ioUtil.rename(source, dest);
-    });
-}
-exports.mv = mv;
-/**
- * Remove a path recursively with force
- *
- * @param inputPath path to remove
- */
-function rmRF(inputPath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (ioUtil.IS_WINDOWS) {
-            // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
-            // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
-            try {
-                if (yield ioUtil.isDirectory(inputPath, true)) {
-                    yield exec(`rd /s /q "${inputPath}"`);
-                }
-                else {
-                    yield exec(`del /f /a "${inputPath}"`);
-                }
-            }
-            catch (err) {
-                // if you try to delete a file that doesn't exist, desired result is achieved
-                // other errors are valid
-                if (err.code !== 'ENOENT')
-                    throw err;
-            }
-            // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
-            try {
-                yield ioUtil.unlink(inputPath);
-            }
-            catch (err) {
-                // if you try to delete a file that doesn't exist, desired result is achieved
-                // other errors are valid
-                if (err.code !== 'ENOENT')
-                    throw err;
-            }
-        }
-        else {
-            let isDir = false;
-            try {
-                isDir = yield ioUtil.isDirectory(inputPath);
-            }
-            catch (err) {
-                // if you try to delete a file that doesn't exist, desired result is achieved
-                // other errors are valid
-                if (err.code !== 'ENOENT')
-                    throw err;
-                return;
-            }
-            if (isDir) {
-                yield exec(`rm -rf "${inputPath}"`);
-            }
-            else {
-                yield ioUtil.unlink(inputPath);
-            }
-        }
-    });
-}
-exports.rmRF = rmRF;
-/**
- * Make a directory.  Creates the full path with folders in between
- * Will throw if it fails
- *
- * @param   fsPath        path to create
- * @returns Promise<void>
- */
-function mkdirP(fsPath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield ioUtil.mkdirP(fsPath);
-    });
-}
-exports.mkdirP = mkdirP;
-/**
- * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
- * If you check and the tool does not exist, it will throw.
- *
- * @param     tool              name of the tool
- * @param     check             whether to check if tool exists
- * @returns   Promise<string>   path to tool
- */
-function which(tool, check) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!tool) {
-            throw new Error("parameter 'tool' is required");
-        }
-        // recursive when check=true
-        if (check) {
-            const result = yield which(tool, false);
-            if (!result) {
-                if (ioUtil.IS_WINDOWS) {
-                    throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`);
-                }
-                else {
-                    throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`);
-                }
-            }
-        }
-        try {
-            // build the list of extensions to try
-            const extensions = [];
-            if (ioUtil.IS_WINDOWS && process.env.PATHEXT) {
-                for (const extension of process.env.PATHEXT.split(path.delimiter)) {
-                    if (extension) {
-                        extensions.push(extension);
-                    }
-                }
-            }
-            // if it's rooted, return it if exists. otherwise return empty.
-            if (ioUtil.isRooted(tool)) {
-                const filePath = yield ioUtil.tryGetExecutablePath(tool, extensions);
-                if (filePath) {
-                    return filePath;
-                }
-                return '';
-            }
-            // if any path separators, return empty
-            if (tool.includes('/') || (ioUtil.IS_WINDOWS && tool.includes('\\'))) {
-                return '';
-            }
-            // build the list of directories
-            //
-            // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
-            // it feels like we should not do this. Checking the current directory seems like more of a use
-            // case of a shell, and the which() function exposed by the toolkit should strive for consistency
-            // across platforms.
-            const directories = [];
-            if (process.env.PATH) {
-                for (const p of process.env.PATH.split(path.delimiter)) {
-                    if (p) {
-                        directories.push(p);
-                    }
-                }
-            }
-            // return the first match
-            for (const directory of directories) {
-                const filePath = yield ioUtil.tryGetExecutablePath(directory + path.sep + tool, extensions);
-                if (filePath) {
-                    return filePath;
-                }
-            }
-            return '';
-        }
-        catch (err) {
-            throw new Error(`which failed with message ${err.message}`);
-        }
-    });
-}
-exports.which = which;
-function readCopyOptions(options) {
-    const force = options.force == null ? true : options.force;
-    const recursive = Boolean(options.recursive);
-    return { force, recursive };
-}
-function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Ensure there is not a run away recursive copy
-        if (currentDepth >= 255)
-            return;
-        currentDepth++;
-        yield mkdirP(destDir);
-        const files = yield ioUtil.readdir(sourceDir);
-        for (const fileName of files) {
-            const srcFile = `${sourceDir}/${fileName}`;
-            const destFile = `${destDir}/${fileName}`;
-            const srcFileStat = yield ioUtil.lstat(srcFile);
-            if (srcFileStat.isDirectory()) {
-                // Recurse
-                yield cpDirRecursive(srcFile, destFile, currentDepth, force);
-            }
-            else {
-                yield copyFile(srcFile, destFile, force);
-            }
-        }
-        // Change the mode for the newly created directory
-        yield ioUtil.chmod(destDir, (yield ioUtil.stat(sourceDir)).mode);
-    });
-}
-// Buffered file copy
-function copyFile(srcFile, destFile, force) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if ((yield ioUtil.lstat(srcFile)).isSymbolicLink()) {
-            // unlink/re-link it
-            try {
-                yield ioUtil.lstat(destFile);
-                yield ioUtil.unlink(destFile);
-            }
-            catch (e) {
-                // Try to override file permission
-                if (e.code === 'EPERM') {
-                    yield ioUtil.chmod(destFile, '0666');
-                    yield ioUtil.unlink(destFile);
-                }
-                // other errors = it doesn't exist, no work to do
-            }
-            // Copy over symlink
-            const symlinkFull = yield ioUtil.readlink(srcFile);
-            yield ioUtil.symlink(symlinkFull, destFile, ioUtil.IS_WINDOWS ? 'junction' : null);
-        }
-        else if (!(yield ioUtil.exists(destFile)) || force) {
-            yield ioUtil.copyFile(srcFile, destFile);
-        }
-    });
-}
-//# sourceMappingURL=io.js.map
-
-/***/ }),
-
-/***/ 9:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const os = __importStar(__webpack_require__(87));
-const events = __importStar(__webpack_require__(614));
-const child = __importStar(__webpack_require__(129));
-const path = __importStar(__webpack_require__(622));
-const io = __importStar(__webpack_require__(1));
-const ioUtil = __importStar(__webpack_require__(672));
-/* eslint-disable @typescript-eslint/unbound-method */
-const IS_WINDOWS = process.platform === 'win32';
-/*
- * Class for running command line tools. Handles quoting and arg parsing in a platform agnostic way.
- */
-class ToolRunner extends events.EventEmitter {
-    constructor(toolPath, args, options) {
-        super();
-        if (!toolPath) {
-            throw new Error("Parameter 'toolPath' cannot be null or empty.");
-        }
-        this.toolPath = toolPath;
-        this.args = args || [];
-        this.options = options || {};
-    }
-    _debug(message) {
-        if (this.options.listeners && this.options.listeners.debug) {
-            this.options.listeners.debug(message);
-        }
-    }
-    _getCommandString(options, noPrefix) {
-        const toolPath = this._getSpawnFileName();
-        const args = this._getSpawnArgs(options);
-        let cmd = noPrefix ? '' : '[command]'; // omit prefix when piped to a second tool
-        if (IS_WINDOWS) {
-            // Windows + cmd file
-            if (this._isCmdFile()) {
-                cmd += toolPath;
-                for (const a of args) {
-                    cmd += ` ${a}`;
-                }
-            }
-            // Windows + verbatim
-            else if (options.windowsVerbatimArguments) {
-                cmd += `"${toolPath}"`;
-                for (const a of args) {
-                    cmd += ` ${a}`;
-                }
-            }
-            // Windows (regular)
-            else {
-                cmd += this._windowsQuoteCmdArg(toolPath);
-                for (const a of args) {
-                    cmd += ` ${this._windowsQuoteCmdArg(a)}`;
-                }
-            }
-        }
-        else {
-            // OSX/Linux - this can likely be improved with some form of quoting.
-            // creating processes on Unix is fundamentally different than Windows.
-            // on Unix, execvp() takes an arg array.
-            cmd += toolPath;
-            for (const a of args) {
-                cmd += ` ${a}`;
-            }
-        }
-        return cmd;
-    }
-    _processLineBuffer(data, strBuffer, onLine) {
-        try {
-            let s = strBuffer + data.toString();
-            let n = s.indexOf(os.EOL);
-            while (n > -1) {
-                const line = s.substring(0, n);
-                onLine(line);
-                // the rest of the string ...
-                s = s.substring(n + os.EOL.length);
-                n = s.indexOf(os.EOL);
-            }
-            strBuffer = s;
-        }
-        catch (err) {
-            // streaming lines to console is best effort.  Don't fail a build.
-            this._debug(`error processing line. Failed with error ${err}`);
-        }
-    }
-    _getSpawnFileName() {
-        if (IS_WINDOWS) {
-            if (this._isCmdFile()) {
-                return process.env['COMSPEC'] || 'cmd.exe';
-            }
-        }
-        return this.toolPath;
-    }
-    _getSpawnArgs(options) {
-        if (IS_WINDOWS) {
-            if (this._isCmdFile()) {
-                let argline = `/D /S /C "${this._windowsQuoteCmdArg(this.toolPath)}`;
-                for (const a of this.args) {
-                    argline += ' ';
-                    argline += options.windowsVerbatimArguments
-                        ? a
-                        : this._windowsQuoteCmdArg(a);
-                }
-                argline += '"';
-                return [argline];
-            }
-        }
-        return this.args;
-    }
-    _endsWith(str, end) {
-        return str.endsWith(end);
-    }
-    _isCmdFile() {
-        const upperToolPath = this.toolPath.toUpperCase();
-        return (this._endsWith(upperToolPath, '.CMD') ||
-            this._endsWith(upperToolPath, '.BAT'));
-    }
-    _windowsQuoteCmdArg(arg) {
-        // for .exe, apply the normal quoting rules that libuv applies
-        if (!this._isCmdFile()) {
-            return this._uvQuoteCmdArg(arg);
-        }
-        // otherwise apply quoting rules specific to the cmd.exe command line parser.
-        // the libuv rules are generic and are not designed specifically for cmd.exe
-        // command line parser.
-        //
-        // for a detailed description of the cmd.exe command line parser, refer to
-        // http://stackoverflow.com/questions/4094699/how-does-the-windows-command-interpreter-cmd-exe-parse-scripts/7970912#7970912
-        // need quotes for empty arg
-        if (!arg) {
-            return '""';
-        }
-        // determine whether the arg needs to be quoted
-        const cmdSpecialChars = [
-            ' ',
-            '\t',
-            '&',
-            '(',
-            ')',
-            '[',
-            ']',
-            '{',
-            '}',
-            '^',
-            '=',
-            ';',
-            '!',
-            "'",
-            '+',
-            ',',
-            '`',
-            '~',
-            '|',
-            '<',
-            '>',
-            '"'
-        ];
-        let needsQuotes = false;
-        for (const char of arg) {
-            if (cmdSpecialChars.some(x => x === char)) {
-                needsQuotes = true;
-                break;
-            }
-        }
-        // short-circuit if quotes not needed
-        if (!needsQuotes) {
-            return arg;
-        }
-        // the following quoting rules are very similar to the rules that by libuv applies.
-        //
-        // 1) wrap the string in quotes
-        //
-        // 2) double-up quotes - i.e. " => ""
-        //
-        //    this is different from the libuv quoting rules. libuv replaces " with \", which unfortunately
-        //    doesn't work well with a cmd.exe command line.
-        //
-        //    note, replacing " with "" also works well if the arg is passed to a downstream .NET console app.
-        //    for example, the command line:
-        //          foo.exe "myarg:""my val"""
-        //    is parsed by a .NET console app into an arg array:
-        //          [ "myarg:\"my val\"" ]
-        //    which is the same end result when applying libuv quoting rules. although the actual
-        //    command line from libuv quoting rules would look like:
-        //          foo.exe "myarg:\"my val\""
-        //
-        // 3) double-up slashes that precede a quote,
-        //    e.g.  hello \world    => "hello \world"
-        //          hello\"world    => "hello\\""world"
-        //          hello\\"world   => "hello\\\\""world"
-        //          hello world\    => "hello world\\"
-        //
-        //    technically this is not required for a cmd.exe command line, or the batch argument parser.
-        //    the reasons for including this as a .cmd quoting rule are:
-        //
-        //    a) this is optimized for the scenario where the argument is passed from the .cmd file to an
-        //       external program. many programs (e.g. .NET console apps) rely on the slash-doubling rule.
-        //
-        //    b) it's what we've been doing previously (by deferring to node default behavior) and we
-        //       haven't heard any complaints about that aspect.
-        //
-        // note, a weakness of the quoting rules chosen here, is that % is not escaped. in fact, % cannot be
-        // escaped when used on the command line directly - even though within a .cmd file % can be escaped
-        // by using %%.
-        //
-        // the saving grace is, on the command line, %var% is left as-is if var is not defined. this contrasts
-        // the line parsing rules within a .cmd file, where if var is not defined it is replaced with nothing.
-        //
-        // one option that was explored was replacing % with ^% - i.e. %var% => ^%var^%. this hack would
-        // often work, since it is unlikely that var^ would exist, and the ^ character is removed when the
-        // variable is used. the problem, however, is that ^ is not removed when %* is used to pass the args
-        // to an external program.
-        //
-        // an unexplored potential solution for the % escaping problem, is to create a wrapper .cmd file.
-        // % can be escaped within a .cmd file.
-        let reverse = '"';
-        let quoteHit = true;
-        for (let i = arg.length; i > 0; i--) {
-            // walk the string in reverse
-            reverse += arg[i - 1];
-            if (quoteHit && arg[i - 1] === '\\') {
-                reverse += '\\'; // double the slash
-            }
-            else if (arg[i - 1] === '"') {
-                quoteHit = true;
-                reverse += '"'; // double the quote
-            }
-            else {
-                quoteHit = false;
-            }
-        }
-        reverse += '"';
-        return reverse
-            .split('')
-            .reverse()
-            .join('');
-    }
-    _uvQuoteCmdArg(arg) {
-        // Tool runner wraps child_process.spawn() and needs to apply the same quoting as
-        // Node in certain cases where the undocumented spawn option windowsVerbatimArguments
-        // is used.
-        //
-        // Since this function is a port of quote_cmd_arg from Node 4.x (technically, lib UV,
-        // see https://github.com/nodejs/node/blob/v4.x/deps/uv/src/win/process.c for details),
-        // pasting copyright notice from Node within this function:
-        //
-        //      Copyright Joyent, Inc. and other Node contributors. All rights reserved.
-        //
-        //      Permission is hereby granted, free of charge, to any person obtaining a copy
-        //      of this software and associated documentation files (the "Software"), to
-        //      deal in the Software without restriction, including without limitation the
-        //      rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-        //      sell copies of the Software, and to permit persons to whom the Software is
-        //      furnished to do so, subject to the following conditions:
-        //
-        //      The above copyright notice and this permission notice shall be included in
-        //      all copies or substantial portions of the Software.
-        //
-        //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        //      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        //      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        //      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        //      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-        //      FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-        //      IN THE SOFTWARE.
-        if (!arg) {
-            // Need double quotation for empty argument
-            return '""';
-        }
-        if (!arg.includes(' ') && !arg.includes('\t') && !arg.includes('"')) {
-            // No quotation needed
-            return arg;
-        }
-        if (!arg.includes('"') && !arg.includes('\\')) {
-            // No embedded double quotes or backslashes, so I can just wrap
-            // quote marks around the whole thing.
-            return `"${arg}"`;
-        }
-        // Expected input/output:
-        //   input : hello"world
-        //   output: "hello\"world"
-        //   input : hello""world
-        //   output: "hello\"\"world"
-        //   input : hello\world
-        //   output: hello\world
-        //   input : hello\\world
-        //   output: hello\\world
-        //   input : hello\"world
-        //   output: "hello\\\"world"
-        //   input : hello\\"world
-        //   output: "hello\\\\\"world"
-        //   input : hello world\
-        //   output: "hello world\\" - note the comment in libuv actually reads "hello world\"
-        //                             but it appears the comment is wrong, it should be "hello world\\"
-        let reverse = '"';
-        let quoteHit = true;
-        for (let i = arg.length; i > 0; i--) {
-            // walk the string in reverse
-            reverse += arg[i - 1];
-            if (quoteHit && arg[i - 1] === '\\') {
-                reverse += '\\';
-            }
-            else if (arg[i - 1] === '"') {
-                quoteHit = true;
-                reverse += '\\';
-            }
-            else {
-                quoteHit = false;
-            }
-        }
-        reverse += '"';
-        return reverse
-            .split('')
-            .reverse()
-            .join('');
-    }
-    _cloneExecOptions(options) {
-        options = options || {};
-        const result = {
-            cwd: options.cwd || process.cwd(),
-            env: options.env || process.env,
-            silent: options.silent || false,
-            windowsVerbatimArguments: options.windowsVerbatimArguments || false,
-            failOnStdErr: options.failOnStdErr || false,
-            ignoreReturnCode: options.ignoreReturnCode || false,
-            delay: options.delay || 10000
-        };
-        result.outStream = options.outStream || process.stdout;
-        result.errStream = options.errStream || process.stderr;
-        return result;
-    }
-    _getSpawnOptions(options, toolPath) {
-        options = options || {};
-        const result = {};
-        result.cwd = options.cwd;
-        result.env = options.env;
-        result['windowsVerbatimArguments'] =
-            options.windowsVerbatimArguments || this._isCmdFile();
-        if (options.windowsVerbatimArguments) {
-            result.argv0 = `"${toolPath}"`;
-        }
-        return result;
-    }
-    /**
-     * Exec a tool.
-     * Output will be streamed to the live console.
-     * Returns promise with return code
-     *
-     * @param     tool     path to tool to exec
-     * @param     options  optional exec options.  See ExecOptions
-     * @returns   number
-     */
-    exec() {
-        return __awaiter(this, void 0, void 0, function* () {
-            // root the tool path if it is unrooted and contains relative pathing
-            if (!ioUtil.isRooted(this.toolPath) &&
-                (this.toolPath.includes('/') ||
-                    (IS_WINDOWS && this.toolPath.includes('\\')))) {
-                // prefer options.cwd if it is specified, however options.cwd may also need to be rooted
-                this.toolPath = path.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
-            }
-            // if the tool is only a file name, then resolve it from the PATH
-            // otherwise verify it exists (add extension on Windows if necessary)
-            this.toolPath = yield io.which(this.toolPath, true);
-            return new Promise((resolve, reject) => {
-                this._debug(`exec tool: ${this.toolPath}`);
-                this._debug('arguments:');
-                for (const arg of this.args) {
-                    this._debug(`   ${arg}`);
-                }
-                const optionsNonNull = this._cloneExecOptions(this.options);
-                if (!optionsNonNull.silent && optionsNonNull.outStream) {
-                    optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
-                }
-                const state = new ExecState(optionsNonNull, this.toolPath);
-                state.on('debug', (message) => {
-                    this._debug(message);
-                });
-                const fileName = this._getSpawnFileName();
-                const cp = child.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
-                const stdbuffer = '';
-                if (cp.stdout) {
-                    cp.stdout.on('data', (data) => {
-                        if (this.options.listeners && this.options.listeners.stdout) {
-                            this.options.listeners.stdout(data);
-                        }
-                        if (!optionsNonNull.silent && optionsNonNull.outStream) {
-                            optionsNonNull.outStream.write(data);
-                        }
-                        this._processLineBuffer(data, stdbuffer, (line) => {
-                            if (this.options.listeners && this.options.listeners.stdline) {
-                                this.options.listeners.stdline(line);
-                            }
-                        });
-                    });
-                }
-                const errbuffer = '';
-                if (cp.stderr) {
-                    cp.stderr.on('data', (data) => {
-                        state.processStderr = true;
-                        if (this.options.listeners && this.options.listeners.stderr) {
-                            this.options.listeners.stderr(data);
-                        }
-                        if (!optionsNonNull.silent &&
-                            optionsNonNull.errStream &&
-                            optionsNonNull.outStream) {
-                            const s = optionsNonNull.failOnStdErr
-                                ? optionsNonNull.errStream
-                                : optionsNonNull.outStream;
-                            s.write(data);
-                        }
-                        this._processLineBuffer(data, errbuffer, (line) => {
-                            if (this.options.listeners && this.options.listeners.errline) {
-                                this.options.listeners.errline(line);
-                            }
-                        });
-                    });
-                }
-                cp.on('error', (err) => {
-                    state.processError = err.message;
-                    state.processExited = true;
-                    state.processClosed = true;
-                    state.CheckComplete();
-                });
-                cp.on('exit', (code) => {
-                    state.processExitCode = code;
-                    state.processExited = true;
-                    this._debug(`Exit code ${code} received from tool '${this.toolPath}'`);
-                    state.CheckComplete();
-                });
-                cp.on('close', (code) => {
-                    state.processExitCode = code;
-                    state.processExited = true;
-                    state.processClosed = true;
-                    this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
-                    state.CheckComplete();
-                });
-                state.on('done', (error, exitCode) => {
-                    if (stdbuffer.length > 0) {
-                        this.emit('stdline', stdbuffer);
-                    }
-                    if (errbuffer.length > 0) {
-                        this.emit('errline', errbuffer);
-                    }
-                    cp.removeAllListeners();
-                    if (error) {
-                        reject(error);
-                    }
-                    else {
-                        resolve(exitCode);
-                    }
-                });
-                if (this.options.input) {
-                    if (!cp.stdin) {
-                        throw new Error('child process missing stdin');
-                    }
-                    cp.stdin.end(this.options.input);
-                }
-            });
-        });
-    }
-}
-exports.ToolRunner = ToolRunner;
-/**
- * Convert an arg string to an array of args. Handles escaping
- *
- * @param    argString   string of arguments
- * @returns  string[]    array of arguments
- */
-function argStringToArray(argString) {
-    const args = [];
-    let inQuotes = false;
-    let escaped = false;
-    let arg = '';
-    function append(c) {
-        // we only escape double quotes.
-        if (escaped && c !== '"') {
-            arg += '\\';
-        }
-        arg += c;
-        escaped = false;
-    }
-    for (let i = 0; i < argString.length; i++) {
-        const c = argString.charAt(i);
-        if (c === '"') {
-            if (!escaped) {
-                inQuotes = !inQuotes;
-            }
-            else {
-                append(c);
-            }
-            continue;
-        }
-        if (c === '\\' && escaped) {
-            append(c);
-            continue;
-        }
-        if (c === '\\' && inQuotes) {
-            escaped = true;
-            continue;
-        }
-        if (c === ' ' && !inQuotes) {
-            if (arg.length > 0) {
-                args.push(arg);
-                arg = '';
-            }
-            continue;
-        }
-        append(c);
-    }
-    if (arg.length > 0) {
-        args.push(arg.trim());
-    }
-    return args;
-}
-exports.argStringToArray = argStringToArray;
-class ExecState extends events.EventEmitter {
-    constructor(options, toolPath) {
-        super();
-        this.processClosed = false; // tracks whether the process has exited and stdio is closed
-        this.processError = '';
-        this.processExitCode = 0;
-        this.processExited = false; // tracks whether the process has exited
-        this.processStderr = false; // tracks whether stderr was written to
-        this.delay = 10000; // 10 seconds
-        this.done = false;
-        this.timeout = null;
-        if (!toolPath) {
-            throw new Error('toolPath must not be empty');
-        }
-        this.options = options;
-        this.toolPath = toolPath;
-        if (options.delay) {
-            this.delay = options.delay;
-        }
-    }
-    CheckComplete() {
-        if (this.done) {
-            return;
-        }
-        if (this.processClosed) {
-            this._setResult();
-        }
-        else if (this.processExited) {
-            this.timeout = setTimeout(ExecState.HandleTimeout, this.delay, this);
-        }
-    }
-    _debug(message) {
-        this.emit('debug', message);
-    }
-    _setResult() {
-        // determine whether there is an error
-        let error;
-        if (this.processExited) {
-            if (this.processError) {
-                error = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
-            }
-            else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
-                error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
-            }
-            else if (this.processStderr && this.options.failOnStdErr) {
-                error = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
-            }
-        }
-        // clear the timeout
-        if (this.timeout) {
-            clearTimeout(this.timeout);
-            this.timeout = null;
-        }
-        this.done = true;
-        this.emit('done', error, this.processExitCode);
-    }
-    static HandleTimeout(state) {
-        if (state.done) {
-            return;
-        }
-        if (!state.processClosed && state.processExited) {
-            const message = `The STDIO streams did not close within ${state.delay /
-                1000} seconds of the exit event from process '${state.toolPath}'. This may indicate a child process inherited the STDIO streams and has not yet exited.`;
-            state._debug(message);
-        }
-        state._setResult();
-    }
-}
-//# sourceMappingURL=toolrunner.js.map
-
-/***/ }),
-
-/***/ 87:
-/***/ (function(module) {
-
-module.exports = require("os");
-
-/***/ }),
-
-/***/ 129:
-/***/ (function(module) {
-
-module.exports = require("child_process");
-
-/***/ }),
-
-/***/ 153:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-// From https://github.com/actions/checkout/blob/master/src/state-helper.ts
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.IsPost = void 0;
-const coreCommand = __importStar(__webpack_require__(431));
-/**
- * Indicates whether the POST action is running
- */
-exports.IsPost = !!process.env['STATE_isPost'];
-// Publish a variable so that when the POST action runs, it can determine it should run the cleanup logic.
-// This is necessary since we don't have a separate entry point.
-if (!exports.IsPost) {
-    coreCommand.issueCommand('save-state', { name: 'isPost' }, 'true');
-}
-//# sourceMappingURL=state-helper.js.map
-
-/***/ }),
-
-/***/ 198:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(470));
-const git = __importStar(__webpack_require__(453));
-const gpg = __importStar(__webpack_require__(207));
-const openpgp = __importStar(__webpack_require__(781));
-const stateHelper = __importStar(__webpack_require__(153));
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            if (!process.env.GPG_PRIVATE_KEY) {
-                core.setFailed('GPG private key required');
-                return;
-            }
-            const git_user_signingkey = /true/i.test(core.getInput('git_user_signingkey'));
-            const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
-            const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
-            const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
-            const git_committer_name = core.getInput('git_committer_name');
-            const git_committer_email = core.getInput('git_committer_email');
-            core.info('📣 GnuPG info');
-            const version = yield gpg.getVersion();
-            const dirs = yield gpg.getDirs();
-            core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
-            core.info(`Libdir     : ${dirs.libdir}`);
-            core.info(`Libexecdir : ${dirs.libexecdir}`);
-            core.info(`Datadir    : ${dirs.datadir}`);
-            core.info(`Homedir    : ${dirs.homedir}`);
-            core.info('🔮 Checking GPG private key');
-            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
-            core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
-            core.debug(`KeyID        : ${privateKey.keyID}`);
-            core.debug(`Name         : ${privateKey.name}`);
-            core.debug(`Email        : ${privateKey.email}`);
-            core.debug(`CreationTime : ${privateKey.creationTime}`);
-            core.info('🔑 Importing GPG private key');
-            yield gpg.importKey(process.env.GPG_PRIVATE_KEY).then(stdout => {
-                core.debug(stdout);
-            });
-            if (process.env.PASSPHRASE) {
-                core.info('⚙️ Configuring GnuPG agent');
-                yield gpg.configureAgent(gpg.agentConfig);
-                core.info('📌 Getting keygrip');
-                const keygrip = yield gpg.getKeygrip(privateKey.fingerprint);
-                core.debug(`${keygrip}`);
-                core.info('🔓 Presetting passphrase');
-                yield gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
-                    core.debug(stdout);
-                });
-            }
-            core.info('🛒 Setting outputs...');
-            core.setOutput('fingerprint', privateKey.fingerprint);
-            core.setOutput('keyid', privateKey.keyID);
-            core.setOutput('name', privateKey.name);
-            core.setOutput('email', privateKey.email);
-            if (git_user_signingkey) {
-                core.info('🔐 Setting GPG signing keyID for this Git repository');
-                yield git.setConfig('user.signingkey', privateKey.keyID);
-                const user_email = git_committer_email || privateKey.email;
-                const user_name = git_committer_name || privateKey.name;
-                if (user_email != privateKey.email) {
-                    core.setFailed('Committer email does not match GPG key user address');
-                    return;
-                }
-                core.info(`🔨 Configuring Git committer (${user_name} <${user_email}>)`);
-                yield git.setConfig('user.name', user_name);
-                yield git.setConfig('user.email', user_email);
-                if (git_commit_gpgsign) {
-                    core.info('💎 Sign all commits automatically');
-                    yield git.setConfig('commit.gpgsign', 'true');
-                }
-                if (git_tag_gpgsign) {
-                    core.info('💎 Sign all tags automatically');
-                    yield git.setConfig('tag.gpgsign', 'true');
-                }
-                if (git_push_gpgsign) {
-                    core.info('💎 Sign all pushes automatically');
-                    yield git.setConfig('push.gpgsign', 'true');
-                }
-            }
-        }
-        catch (error) {
-            core.setFailed(error.message);
-        }
-    });
-}
-function cleanup() {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!process.env.GPG_PRIVATE_KEY) {
-            core.debug('GPG private key is not defined. Skipping cleanup.');
-            return;
-        }
-        try {
-            core.info('🚿 Removing keys');
-            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
-            yield gpg.deleteKey(privateKey.fingerprint);
-            core.info('💀 Killing GnuPG agent');
-            yield gpg.killAgent();
-        }
-        catch (error) {
-            core.warning(error.message);
-        }
-    });
-}
-// Main
-if (!stateHelper.IsPost) {
-    run();
-}
-// Post
-else {
-    cleanup();
-}
-//# sourceMappingURL=main.js.map
-
-/***/ }),
-
-/***/ 207:
+/***/ 60:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -1194,8 +87,8 @@ exports.killAgent = exports.deleteKey = exports.presetPassphrase = exports.confi
 const fs = __importStar(__webpack_require__(747));
 const path = __importStar(__webpack_require__(622));
 const os = __importStar(__webpack_require__(87));
-const exec = __importStar(__webpack_require__(807));
-const openpgp = __importStar(__webpack_require__(781));
+const exec = __importStar(__webpack_require__(757));
+const openpgp = __importStar(__webpack_require__(666));
 exports.agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
 allow-preset-passphrase`;
@@ -1343,113 +236,14 @@ exports.killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
 
 /***/ }),
 
-/***/ 357:
+/***/ 87:
 /***/ (function(module) {
 
-module.exports = require("assert");
+module.exports = require("os");
 
 /***/ }),
 
-/***/ 431:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const os = __importStar(__webpack_require__(87));
-/**
- * Commands
- *
- * Command Format:
- *   ::name key=value,key=value::message
- *
- * Examples:
- *   ::warning::This is the message
- *   ::set-env name=MY_VAR::some value
- */
-function issueCommand(command, properties, message) {
-    const cmd = new Command(command, properties, message);
-    process.stdout.write(cmd.toString() + os.EOL);
-}
-exports.issueCommand = issueCommand;
-function issue(name, message = '') {
-    issueCommand(name, {}, message);
-}
-exports.issue = issue;
-const CMD_STRING = '::';
-class Command {
-    constructor(command, properties, message) {
-        if (!command) {
-            command = 'missing.command';
-        }
-        this.command = command;
-        this.properties = properties;
-        this.message = message;
-    }
-    toString() {
-        let cmdStr = CMD_STRING + this.command;
-        if (this.properties && Object.keys(this.properties).length > 0) {
-            cmdStr += ' ';
-            let first = true;
-            for (const key in this.properties) {
-                if (this.properties.hasOwnProperty(key)) {
-                    const val = this.properties[key];
-                    if (val) {
-                        if (first) {
-                            first = false;
-                        }
-                        else {
-                            cmdStr += ',';
-                        }
-                        cmdStr += `${key}=${escapeProperty(val)}`;
-                    }
-                }
-            }
-        }
-        cmdStr += `${CMD_STRING}${escapeData(this.message)}`;
-        return cmdStr;
-    }
-}
-/**
- * Sanitizes an input into a string so it can be passed into issueCommand safely
- * @param input input to sanitize into a string
- */
-function toCommandValue(input) {
-    if (input === null || input === undefined) {
-        return '';
-    }
-    else if (typeof input === 'string' || input instanceof String) {
-        return input;
-    }
-    return JSON.stringify(input);
-}
-exports.toCommandValue = toCommandValue;
-function escapeData(s) {
-    return toCommandValue(s)
-        .replace(/%/g, '%25')
-        .replace(/\r/g, '%0D')
-        .replace(/\n/g, '%0A');
-}
-function escapeProperty(s) {
-    return toCommandValue(s)
-        .replace(/%/g, '%25')
-        .replace(/\r/g, '%0D')
-        .replace(/\n/g, '%0A')
-        .replace(/:/g, '%3A')
-        .replace(/,/g, '%2C');
-}
-//# sourceMappingURL=command.js.map
-
-/***/ }),
-
-/***/ 453:
+/***/ 109:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -1483,482 +277,131 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setConfig = void 0;
-const exec = __importStar(__webpack_require__(807));
-const git = (args = []) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec.exec(`git`, args, true).then(res => {
-        if (res.stderr != '' && !res.success) {
-            throw new Error(res.stderr);
-        }
-        return res.stdout.trim();
-    });
-});
-function setConfig(key, value) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield git(['config', key, value]);
-    });
-}
-exports.setConfig = setConfig;
-//# sourceMappingURL=git.js.map
-
-/***/ }),
-
-/***/ 470:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const command_1 = __webpack_require__(431);
-const os = __importStar(__webpack_require__(87));
-const path = __importStar(__webpack_require__(622));
-/**
- * The code to exit an action
- */
-var ExitCode;
-(function (ExitCode) {
-    /**
-     * A code indicating that the action was successful
-     */
-    ExitCode[ExitCode["Success"] = 0] = "Success";
-    /**
-     * A code indicating that the action was a failure
-     */
-    ExitCode[ExitCode["Failure"] = 1] = "Failure";
-})(ExitCode = exports.ExitCode || (exports.ExitCode = {}));
-//-----------------------------------------------------------------------
-// Variables
-//-----------------------------------------------------------------------
-/**
- * Sets env variable for this action and future actions in the job
- * @param name the name of the variable to set
- * @param val the value of the variable. Non-string values will be converted to a string via JSON.stringify
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function exportVariable(name, val) {
-    const convertedVal = command_1.toCommandValue(val);
-    process.env[name] = convertedVal;
-    command_1.issueCommand('set-env', { name }, convertedVal);
-}
-exports.exportVariable = exportVariable;
-/**
- * Registers a secret which will get masked from logs
- * @param secret value of the secret
- */
-function setSecret(secret) {
-    command_1.issueCommand('add-mask', {}, secret);
-}
-exports.setSecret = setSecret;
-/**
- * Prepends inputPath to the PATH (for this action and future actions)
- * @param inputPath
- */
-function addPath(inputPath) {
-    command_1.issueCommand('add-path', {}, inputPath);
-    process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
-}
-exports.addPath = addPath;
-/**
- * Gets the value of an input.  The value is also trimmed.
- *
- * @param     name     name of the input to get
- * @param     options  optional. See InputOptions.
- * @returns   string
- */
-function getInput(name, options) {
-    const val = process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '';
-    if (options && options.required && !val) {
-        throw new Error(`Input required and not supplied: ${name}`);
-    }
-    return val.trim();
-}
-exports.getInput = getInput;
-/**
- * Sets the value of an output.
- *
- * @param     name     name of the output to set
- * @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function setOutput(name, value) {
-    command_1.issueCommand('set-output', { name }, value);
-}
-exports.setOutput = setOutput;
-/**
- * Enables or disables the echoing of commands into stdout for the rest of the step.
- * Echoing is disabled by default if ACTIONS_STEP_DEBUG is not set.
- *
- */
-function setCommandEcho(enabled) {
-    command_1.issue('echo', enabled ? 'on' : 'off');
-}
-exports.setCommandEcho = setCommandEcho;
-//-----------------------------------------------------------------------
-// Results
-//-----------------------------------------------------------------------
-/**
- * Sets the action status to failed.
- * When the action exits it will be with an exit code of 1
- * @param message add error issue message
- */
-function setFailed(message) {
-    process.exitCode = ExitCode.Failure;
-    error(message);
-}
-exports.setFailed = setFailed;
-//-----------------------------------------------------------------------
-// Logging Commands
-//-----------------------------------------------------------------------
-/**
- * Gets whether Actions Step Debug is on or not
- */
-function isDebug() {
-    return process.env['RUNNER_DEBUG'] === '1';
-}
-exports.isDebug = isDebug;
-/**
- * Writes debug message to user log
- * @param message debug message
- */
-function debug(message) {
-    command_1.issueCommand('debug', {}, message);
-}
-exports.debug = debug;
-/**
- * Adds an error issue
- * @param message error issue message. Errors will be converted to string via toString()
- */
-function error(message) {
-    command_1.issue('error', message instanceof Error ? message.toString() : message);
-}
-exports.error = error;
-/**
- * Adds an warning issue
- * @param message warning issue message. Errors will be converted to string via toString()
- */
-function warning(message) {
-    command_1.issue('warning', message instanceof Error ? message.toString() : message);
-}
-exports.warning = warning;
-/**
- * Writes info to log with console.log.
- * @param message info message
- */
-function info(message) {
-    process.stdout.write(message + os.EOL);
-}
-exports.info = info;
-/**
- * Begin an output group.
- *
- * Output until the next `groupEnd` will be foldable in this group
- *
- * @param name The name of the output group
- */
-function startGroup(name) {
-    command_1.issue('group', name);
-}
-exports.startGroup = startGroup;
-/**
- * End an output group.
- */
-function endGroup() {
-    command_1.issue('endgroup');
-}
-exports.endGroup = endGroup;
-/**
- * Wrap an asynchronous function call in a group.
- *
- * Returns the same type as the function itself.
- *
- * @param name The name of the group
- * @param fn The function to wrap in the group
- */
-function group(name, fn) {
-    return __awaiter(this, void 0, void 0, function* () {
-        startGroup(name);
-        let result;
-        try {
-            result = yield fn();
-        }
-        finally {
-            endGroup();
-        }
-        return result;
-    });
-}
-exports.group = group;
-//-----------------------------------------------------------------------
-// Wrapper action state
-//-----------------------------------------------------------------------
-/**
- * Saves state for current action, the state can only be retrieved by this action's post job execution.
- *
- * @param     name     name of the state to store
- * @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function saveState(name, value) {
-    command_1.issueCommand('save-state', { name }, value);
-}
-exports.saveState = saveState;
-/**
- * Gets the value of an state set by this action's main execution.
- *
- * @param     name     name of the state to get
- * @returns   string
- */
-function getState(name) {
-    return process.env[`STATE_${name}`] || '';
-}
-exports.getState = getState;
-//# sourceMappingURL=core.js.map
-
-/***/ }),
-
-/***/ 614:
-/***/ (function(module) {
-
-module.exports = require("events");
-
-/***/ }),
-
-/***/ 622:
-/***/ (function(module) {
-
-module.exports = require("path");
-
-/***/ }),
-
-/***/ 669:
-/***/ (function(module) {
-
-module.exports = require("util");
-
-/***/ }),
-
-/***/ 672:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var _a;
-Object.defineProperty(exports, "__esModule", { value: true });
-const assert_1 = __webpack_require__(357);
-const fs = __webpack_require__(747);
-const path = __webpack_require__(622);
-_a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
-exports.IS_WINDOWS = process.platform === 'win32';
-function exists(fsPath) {
+const core = __importStar(__webpack_require__(186));
+const git = __importStar(__webpack_require__(374));
+const gpg = __importStar(__webpack_require__(60));
+const openpgp = __importStar(__webpack_require__(666));
+const stateHelper = __importStar(__webpack_require__(647));
+function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield exports.stat(fsPath);
-        }
-        catch (err) {
-            if (err.code === 'ENOENT') {
-                return false;
+            if (!process.env.GPG_PRIVATE_KEY) {
+                core.setFailed('GPG private key required');
+                return;
             }
-            throw err;
-        }
-        return true;
-    });
-}
-exports.exists = exists;
-function isDirectory(fsPath, useStat = false) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const stats = useStat ? yield exports.stat(fsPath) : yield exports.lstat(fsPath);
-        return stats.isDirectory();
-    });
-}
-exports.isDirectory = isDirectory;
-/**
- * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
- * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
- */
-function isRooted(p) {
-    p = normalizeSeparators(p);
-    if (!p) {
-        throw new Error('isRooted() parameter "p" cannot be empty');
-    }
-    if (exports.IS_WINDOWS) {
-        return (p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
-        ); // e.g. C: or C:\hello
-    }
-    return p.startsWith('/');
-}
-exports.isRooted = isRooted;
-/**
- * Recursively create a directory at `fsPath`.
- *
- * This implementation is optimistic, meaning it attempts to create the full
- * path first, and backs up the path stack from there.
- *
- * @param fsPath The path to create
- * @param maxDepth The maximum recursion depth
- * @param depth The current recursion depth
- */
-function mkdirP(fsPath, maxDepth = 1000, depth = 1) {
-    return __awaiter(this, void 0, void 0, function* () {
-        assert_1.ok(fsPath, 'a path argument must be provided');
-        fsPath = path.resolve(fsPath);
-        if (depth >= maxDepth)
-            return exports.mkdir(fsPath);
-        try {
-            yield exports.mkdir(fsPath);
-            return;
-        }
-        catch (err) {
-            switch (err.code) {
-                case 'ENOENT': {
-                    yield mkdirP(path.dirname(fsPath), maxDepth, depth + 1);
-                    yield exports.mkdir(fsPath);
+            const git_user_signingkey = /true/i.test(core.getInput('git_user_signingkey'));
+            const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
+            const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
+            const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
+            const git_committer_name = core.getInput('git_committer_name');
+            const git_committer_email = core.getInput('git_committer_email');
+            core.info('📣 GnuPG info');
+            const version = yield gpg.getVersion();
+            const dirs = yield gpg.getDirs();
+            core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
+            core.info(`Libdir     : ${dirs.libdir}`);
+            core.info(`Libexecdir : ${dirs.libexecdir}`);
+            core.info(`Datadir    : ${dirs.datadir}`);
+            core.info(`Homedir    : ${dirs.homedir}`);
+            core.info('🔮 Checking GPG private key');
+            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
+            core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
+            core.debug(`KeyID        : ${privateKey.keyID}`);
+            core.debug(`Name         : ${privateKey.name}`);
+            core.debug(`Email        : ${privateKey.email}`);
+            core.debug(`CreationTime : ${privateKey.creationTime}`);
+            core.info('🔑 Importing GPG private key');
+            yield gpg.importKey(process.env.GPG_PRIVATE_KEY).then(stdout => {
+                core.debug(stdout);
+            });
+            if (process.env.PASSPHRASE) {
+                core.info('⚙️ Configuring GnuPG agent');
+                yield gpg.configureAgent(gpg.agentConfig);
+                core.info('📌 Getting keygrip');
+                const keygrip = yield gpg.getKeygrip(privateKey.fingerprint);
+                core.debug(`${keygrip}`);
+                core.info('🔓 Presetting passphrase');
+                yield gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
+                    core.debug(stdout);
+                });
+            }
+            core.info('🛒 Setting outputs...');
+            core.setOutput('fingerprint', privateKey.fingerprint);
+            core.setOutput('keyid', privateKey.keyID);
+            core.setOutput('name', privateKey.name);
+            core.setOutput('email', privateKey.email);
+            if (git_user_signingkey) {
+                core.info('🔐 Setting GPG signing keyID for this Git repository');
+                yield git.setConfig('user.signingkey', privateKey.keyID);
+                const user_email = git_committer_email || privateKey.email;
+                const user_name = git_committer_name || privateKey.name;
+                if (user_email != privateKey.email) {
+                    core.setFailed('Committer email does not match GPG key user address');
                     return;
                 }
-                default: {
-                    let stats;
-                    try {
-                        stats = yield exports.stat(fsPath);
-                    }
-                    catch (err2) {
-                        throw err;
-                    }
-                    if (!stats.isDirectory())
-                        throw err;
+                core.info(`🔨 Configuring Git committer (${user_name} <${user_email}>)`);
+                yield git.setConfig('user.name', user_name);
+                yield git.setConfig('user.email', user_email);
+                if (git_commit_gpgsign) {
+                    core.info('💎 Sign all commits automatically');
+                    yield git.setConfig('commit.gpgsign', 'true');
+                }
+                if (git_tag_gpgsign) {
+                    core.info('💎 Sign all tags automatically');
+                    yield git.setConfig('tag.gpgsign', 'true');
+                }
+                if (git_push_gpgsign) {
+                    core.info('💎 Sign all pushes automatically');
+                    yield git.setConfig('push.gpgsign', 'true');
                 }
             }
         }
+        catch (error) {
+            core.setFailed(error.message);
+        }
     });
 }
-exports.mkdirP = mkdirP;
-/**
- * Best effort attempt to determine whether a file exists and is executable.
- * @param filePath    file path to check
- * @param extensions  additional file extensions to try
- * @return if file exists and is executable, returns the file path. otherwise empty string.
- */
-function tryGetExecutablePath(filePath, extensions) {
+function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        let stats = undefined;
+        if (!process.env.GPG_PRIVATE_KEY) {
+            core.debug('GPG private key is not defined. Skipping cleanup.');
+            return;
+        }
         try {
-            // test file exists
-            stats = yield exports.stat(filePath);
+            core.info('🚿 Removing keys');
+            const privateKey = yield openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
+            yield gpg.deleteKey(privateKey.fingerprint);
+            core.info('💀 Killing GnuPG agent');
+            yield gpg.killAgent();
         }
-        catch (err) {
-            if (err.code !== 'ENOENT') {
-                // eslint-disable-next-line no-console
-                console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
-            }
+        catch (error) {
+            core.warning(error.message);
         }
-        if (stats && stats.isFile()) {
-            if (exports.IS_WINDOWS) {
-                // on Windows, test for valid extension
-                const upperExt = path.extname(filePath).toUpperCase();
-                if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
-                    return filePath;
-                }
-            }
-            else {
-                if (isUnixExecutable(stats)) {
-                    return filePath;
-                }
-            }
-        }
-        // try each extension
-        const originalFilePath = filePath;
-        for (const extension of extensions) {
-            filePath = originalFilePath + extension;
-            stats = undefined;
-            try {
-                stats = yield exports.stat(filePath);
-            }
-            catch (err) {
-                if (err.code !== 'ENOENT') {
-                    // eslint-disable-next-line no-console
-                    console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
-                }
-            }
-            if (stats && stats.isFile()) {
-                if (exports.IS_WINDOWS) {
-                    // preserve the case of the actual file (since an extension was appended)
-                    try {
-                        const directory = path.dirname(filePath);
-                        const upperName = path.basename(filePath).toUpperCase();
-                        for (const actualName of yield exports.readdir(directory)) {
-                            if (upperName === actualName.toUpperCase()) {
-                                filePath = path.join(directory, actualName);
-                                break;
-                            }
-                        }
-                    }
-                    catch (err) {
-                        // eslint-disable-next-line no-console
-                        console.log(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
-                    }
-                    return filePath;
-                }
-                else {
-                    if (isUnixExecutable(stats)) {
-                        return filePath;
-                    }
-                }
-            }
-        }
-        return '';
     });
 }
-exports.tryGetExecutablePath = tryGetExecutablePath;
-function normalizeSeparators(p) {
-    p = p || '';
-    if (exports.IS_WINDOWS) {
-        // convert slashes on Windows
-        p = p.replace(/\//g, '\\');
-        // remove redundant slashes
-        return p.replace(/\\\\+/g, '\\');
-    }
-    // remove redundant slashes
-    return p.replace(/\/\/+/g, '/');
+// Main
+if (!stateHelper.IsPost) {
+    run();
 }
-// on Mac/Linux, test the execute bit
-//     R   W  X  R  W X R W X
-//   256 128 64 32 16 8 4 2 1
-function isUnixExecutable(stats) {
-    return ((stats.mode & 1) > 0 ||
-        ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
-        ((stats.mode & 64) > 0 && stats.uid === process.getuid()));
+// Post
+else {
+    cleanup();
 }
-//# sourceMappingURL=io-util.js.map
+//# sourceMappingURL=main.js.map
 
 /***/ }),
 
-/***/ 724:
+/***/ 129:
 /***/ (function(module) {
 
-/*! OpenPGP.js v4.10.4 - 2020-04-22 - this is LGPL licensed code, see LICENSE/our website https://openpgpjs.org/ for more information. */
+module.exports = require("child_process");
+
+/***/ }),
+
+/***/ 144:
+/***/ (function(module) {
+
+/*! OpenPGP.js v4.10.7 - 2020-07-21 - this is LGPL licensed code, see LICENSE/our website https://openpgpjs.org/ for more information. */
 (function(f){if(true){module.exports=f()}else { var g; }})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c=require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u=require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (global){
 "use strict";
@@ -27012,7 +25455,7 @@ exports.default = {
    * @memberof module:config
    * @property {String} versionstring A version string to be included in armored messages
    */
-  versionstring: "OpenPGP.js v4.10.4",
+  versionstring: "OpenPGP.js v4.10.7",
   /**
    * @memberof module:config
    * @property {String} commentstring A comment string to be included in armored messages
@@ -29132,9 +27575,9 @@ exports.default = {
           data = new _mpi2.default(_pkcs4.default.encode(data));
           const oid = pub_params[0];
           const Q = pub_params[1].toUint8Array();
-          const kdf_params = pub_params[2];
+          const kdfParams = pub_params[2];
 
-          var _ref = await _public_key2.default.elliptic.ecdh.encrypt(oid, kdf_params.cipher, kdf_params.hash, data, Q, fingerprint);
+          var _ref = await _public_key2.default.elliptic.ecdh.encrypt(oid, kdfParams, data, Q, fingerprint);
 
           const V = _ref.publicKey,
                 C = _ref.wrappedKey;
@@ -29186,12 +27629,12 @@ exports.default = {
       case _enums2.default.publicKey.ecdh:
         {
           const oid = key_params[0];
-          const kdf_params = key_params[2];
+          const kdfParams = key_params[2];
           const V = data_params[0].toUint8Array();
           const C = data_params[1].data;
           const Q = key_params[1].toUint8Array();
           const d = key_params[3].toUint8Array();
-          const result = new _mpi2.default((await _public_key2.default.elliptic.ecdh.decrypt(oid, kdf_params.cipher, kdf_params.hash, V, C, Q, d, fingerprint)));
+          const result = new _mpi2.default((await _public_key2.default.elliptic.ecdh.decrypt(oid, kdfParams, V, C, Q, d, fingerprint)));
           return _pkcs4.default.decode(result.toString());
         }
       default:
@@ -29200,8 +27643,8 @@ exports.default = {
   },
 
   /** Returns the types comprising the private key of an algorithm
-   * @param {String} algo The public key algorithm
-   * @returns {Array<String>} The array of types
+   * @param {module:enums.publicKey}  algo The public key algorithm
+   * @returns {Array<String>}         The array of types
    */
   getPrivKeyParamTypes: function getPrivKeyParamTypes(algo) {
     switch (algo) {
@@ -29234,8 +27677,8 @@ exports.default = {
   },
 
   /** Returns the types comprising the public key of an algorithm
-   * @param {String} algo The public key algorithm
-   * @returns {Array<String>} The array of types
+   * @param {module:enums.publicKey}  algo The public key algorithm
+   * @returns {Array<String>}         The array of types
    */
   getPubKeyParamTypes: function getPubKeyParamTypes(algo) {
     switch (algo) {
@@ -29277,8 +27720,8 @@ exports.default = {
   },
 
   /** Returns the types comprising the encrypted session key of an algorithm
-   * @param {String} algo The public key algorithm
-   * @returns {Array<String>} The array of types
+   * @param {module:enums.publicKey}  algo The public key algorithm
+   * @returns {Array<String>}         The array of types
    */
   getEncSessionKeyParamTypes: function getEncSessionKeyParamTypes(algo) {
     switch (algo) {
@@ -29304,10 +27747,10 @@ exports.default = {
   },
 
   /** Generate algorithm-specific key parameters
-   * @param {String}          algo The public key algorithm
-   * @param {Integer}         bits Bit length for RSA keys
-   * @param {module:type/oid} oid  Object identifier for ECC keys
-   * @returns {Array}              The array of parameters
+   * @param {module:enums.publicKey}  algo The public key algorithm
+   * @param {Integer}                 bits Bit length for RSA keys
+   * @param {module:type/oid}         oid  Object identifier for ECC keys
+   * @returns {Array}                 The array of parameters
    * @async
    */
   generateParams: function generateParams(algo, bits, oid) {
@@ -29331,8 +27774,93 @@ exports.default = {
         });
       case _enums2.default.publicKey.ecdh:
         return _public_key2.default.elliptic.generate(oid).then(function (keyObject) {
-          return constructParams(types, [keyObject.oid, keyObject.Q, [keyObject.hash, keyObject.cipher], keyObject.d]);
+          return constructParams(types, [keyObject.oid, keyObject.Q, { hash: keyObject.hash, cipher: keyObject.cipher }, keyObject.d]);
         });
+      default:
+        throw new Error('Invalid public key algorithm.');
+    }
+  },
+
+  /**
+   * Validate algorithm-specific key parameters
+   * @param {module:enums.publicKey}  algo The public key algorithm
+   * @param {Array}                   params The array of parameters
+   * @returns {Promise<Boolean>       whether the parameters are valid
+   * @async
+   */
+  validateParams: async function validateParams(algo, params) {
+    switch (algo) {
+      case _enums2.default.publicKey.rsa_encrypt:
+      case _enums2.default.publicKey.rsa_encrypt_sign:
+      case _enums2.default.publicKey.rsa_sign:
+        {
+          if (params.length < 6) {
+            throw new Error('Missing key parameters');
+          }
+          const n = params[0].toUint8Array();
+          const e = params[1].toUint8Array();
+          const d = params[2].toUint8Array();
+          const p = params[3].toUint8Array();
+          const q = params[4].toUint8Array();
+          const u = params[5].toUint8Array();
+          return _public_key2.default.rsa.validateParams(n, e, d, p, q, u);
+        }
+      case _enums2.default.publicKey.dsa:
+        {
+          if (params.length < 5) {
+            throw new Error('Missing key parameters');
+          }
+          const p = params[0].toUint8Array();
+          const q = params[1].toUint8Array();
+          const g = params[2].toUint8Array();
+          const y = params[3].toUint8Array();
+          const x = params[4].toUint8Array();
+          return _public_key2.default.dsa.validateParams(p, q, g, y, x);
+        }
+      case _enums2.default.publicKey.elgamal:
+        {
+          if (params.length < 4) {
+            throw new Error('Missing key parameters');
+          }
+          const p = params[0].toUint8Array();
+          const g = params[1].toUint8Array();
+          const y = params[2].toUint8Array();
+          const x = params[3].toUint8Array();
+          return _public_key2.default.elgamal.validateParams(p, g, y, x);
+        }
+      case _enums2.default.publicKey.ecdsa:
+      case _enums2.default.publicKey.ecdh:
+        {
+          const expectedLen = algo === _enums2.default.publicKey.ecdh ? 3 : 2;
+          if (params.length < expectedLen) {
+            throw new Error('Missing key parameters');
+          }
+
+          const algoModule = _public_key2.default.elliptic[_enums2.default.read(_enums2.default.publicKey, algo)];
+
+          var _algoModule$parsePara = algoModule.parseParams(params);
+
+          const oid = _algoModule$parsePara.oid,
+                Q = _algoModule$parsePara.Q,
+                d = _algoModule$parsePara.d;
+
+          return algoModule.validateParams(oid, Q, d);
+        }
+      case _enums2.default.publicKey.eddsa:
+        {
+          const expectedLen = 3;
+          if (params.length < expectedLen) {
+            throw new Error('Missing key parameters');
+          }
+
+          var _publicKey$elliptic$e = _public_key2.default.elliptic.eddsa.parseParams(params);
+
+          const oid = _publicKey$elliptic$e.oid,
+                Q = _publicKey$elliptic$e.Q,
+                seed = _publicKey$elliptic$e.seed;
+
+          return _public_key2.default.elliptic.eddsa.validateParams(oid, Q, seed);
+        }
       default:
         throw new Error('Invalid public key algorithm.');
     }
@@ -30760,9 +29288,13 @@ var _util = require('../../util');
 
 var _util2 = _interopRequireDefault(_util);
 
+var _prime = require('./prime');
+
+var _prime2 = _interopRequireDefault(_prime);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const one = new _bn2.default(1); // GPG4Browsers - An OpenPGP implementation in javascript
+// GPG4Browsers - An OpenPGP implementation in javascript
 // Copyright (C) 2011 Recurity Labs GmbH
 //
 // This library is free software; you can redistribute it and/or
@@ -30787,6 +29319,7 @@ const one = new _bn2.default(1); // GPG4Browsers - An OpenPGP implementation in 
  * @module crypto/public_key/dsa
  */
 
+const one = new _bn2.default(1);
 const zero = new _bn2.default(0);
 
 /*
@@ -30879,10 +29412,72 @@ exports.default = {
     const t2 = y.toRed(redp).redPow(u2.fromRed()); // y**u2 mod p
     const v = t1.redMul(t2).fromRed().mod(q); // (g**u1 * y**u2 mod p) mod q
     return v.cmp(r) === 0;
+  },
+
+  /**
+   * Validate DSA parameters
+   * @param {Uint8Array}         p DSA prime
+   * @param {Uint8Array}         q DSA group order
+   * @param {Uint8Array}         g DSA sub-group generator
+   * @param {Uint8Array}         y DSA public key
+   * @param {Uint8Array}         x DSA private key
+   * @returns {Promise<Boolean>} whether params are valid
+   * @async
+   */
+  validateParams: async function validateParams(p, q, g, y, x) {
+    p = new _bn2.default(p);
+    q = new _bn2.default(q);
+    g = new _bn2.default(g);
+    y = new _bn2.default(y);
+    const one = new _bn2.default(1);
+    // Check that 1 < g < p
+    if (g.lte(one) || g.gte(p)) {
+      return false;
+    }
+
+    /**
+     * Check that subgroup order q divides p-1
+     */
+    if (!p.sub(one).mod(q).isZero()) {
+      return false;
+    }
+
+    const pred = new _bn2.default.red(p);
+    const gModP = g.toRed(pred);
+    /**
+     * g has order q
+     * Check that g ** q = 1 mod p
+     */
+    if (!gModP.redPow(q).eq(one)) {
+      return false;
+    }
+
+    /**
+     * Check q is large and probably prime (we mainly want to avoid small factors)
+     */
+    const qSize = q.bitLength();
+    if (qSize < 150 || !(await _prime2.default.isProbablePrime(q, null, 32))) {
+      return false;
+    }
+
+    /**
+     * Re-derive public key y' = g ** x mod p
+     * Expect y == y'
+     *
+     * Blinded exponentiation computes g**{rq + x} to compare to y
+     */
+    x = new _bn2.default(x);
+    const r = await _random2.default.getRandomBN(new _bn2.default(2).shln(qSize - 1), new _bn2.default(2).shln(qSize)); // draw r of same size as q
+    const rqx = q.mul(r).add(x);
+    if (!y.eq(gModP.redPow(rqx))) {
+      return false;
+    }
+
+    return true;
   }
 };
 
-},{"../../util":158,"../random":109,"bn.js":16}],99:[function(require,module,exports){
+},{"../../util":158,"../random":109,"./prime":107,"bn.js":16}],99:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -30962,6 +29557,75 @@ exports.default = {
     const c1red = c1.toRed(redp);
     const c2red = c2.toRed(redp);
     return c1red.redPow(x).redInvm().redMul(c2red).fromRed();
+  },
+
+  /**
+   * Validate ElGamal parameters
+   * @param {Uint8Array}         p ElGamal prime
+   * @param {Uint8Array}         g ElGamal group generator
+   * @param {Uint8Array}         y ElGamal public key
+   * @param {Uint8Array}         x ElGamal private exponent
+   * @returns {Promise<Boolean>} whether params are valid
+   * @async
+   */
+  validateParams: async function validateParams(p, g, y, x) {
+    p = new _bn2.default(p);
+    g = new _bn2.default(g);
+    y = new _bn2.default(y);
+
+    const one = new _bn2.default(1);
+    // Check that 1 < g < p
+    if (g.lte(one) || g.gte(p)) {
+      return false;
+    }
+
+    // Expect p-1 to be large
+    const pSize = p.subn(1).bitLength();
+    if (pSize < 1023) {
+      return false;
+    }
+
+    const pred = new _bn2.default.red(p);
+    const gModP = g.toRed(pred);
+    /**
+     * g should have order p-1
+     * Check that g ** (p-1) = 1 mod p
+     */
+    if (!gModP.redPow(p.subn(1)).eq(one)) {
+      return false;
+    }
+
+    /**
+     * Since p-1 is not prime, g might have a smaller order that divides p-1
+     * We want to make sure that the order is large enough to hinder a small subgroup attack
+     *
+     * We just check g**i != 1 for all i up to a threshold
+     */
+    let res = g;
+    const i = new _bn2.default(1);
+    const threshold = new _bn2.default(2).shln(17); // we want order > threshold
+    while (i.lt(threshold)) {
+      res = res.mul(g).mod(p);
+      if (res.eqn(1)) {
+        return false;
+      }
+      i.iaddn(1);
+    }
+
+    /**
+     * Re-derive public key y' = g ** x mod p
+     * Expect y == y'
+     *
+     * Blinded exponentiation computes g**{r(p-1) + x} to compare to y
+     */
+    x = new _bn2.default(x);
+    const r = await _random2.default.getRandomBN(new _bn2.default(2).shln(pSize - 1), new _bn2.default(2).shln(pSize)); // draw r of same size as p-1
+    const rqx = p.subn(1).mul(r).add(x);
+    if (!y.eq(gModP.redPow(rqx))) {
+      return false;
+    }
+
+    return true;
   }
 };
 
@@ -30971,7 +29635,7 @@ exports.default = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.privateToJwk = exports.rawPublicToJwk = exports.jwkToRawPublic = exports.getPreferredHashAlgo = exports.generate = exports.nodeCurves = exports.webCurves = exports.curves = undefined;
+exports.validateStandardParams = exports.privateToJwk = exports.rawPublicToJwk = exports.jwkToRawPublic = exports.getPreferredHashAlgo = exports.generate = exports.nodeCurves = exports.webCurves = exports.curves = undefined;
 
 var _bn = require('bn.js');
 
@@ -31099,7 +29763,7 @@ const curves = {
   },
   curve25519: {
     oid: [0x06, 0x0A, 0x2B, 0x06, 0x01, 0x04, 0x01, 0x97, 0x55, 0x01, 0x05, 0x01],
-    keyType: _enums2.default.publicKey.ecdsa,
+    keyType: _enums2.default.publicKey.ecdh,
     hash: _enums2.default.hash.sha256,
     cipher: _enums2.default.symmetric.aes128,
     node: false, // nodeCurves.curve25519 TODO
@@ -31223,6 +29887,73 @@ function getPreferredHashAlgo(oid) {
   return curves[_enums2.default.write(_enums2.default.curve, oid.toHex())].hash;
 }
 
+/**
+ * Validate ECDH and EcDSA parameters
+ * Not suitable for EdDSA (different secret key format)
+ * @param {module:enums.publicKey}  algo EC algorithm, to filter supported curves
+ * @param {module:type/oid}         oid  EC object identifier
+ * @param {Uint8Array}              Q    EC public point
+ * @param {Uint8Array}              d    EC secret scalar
+ * @returns {Promise<Boolean>}      whether params are valid
+ * @async
+ */
+async function validateStandardParams(algo, oid, Q, d) {
+  const supportedCurves = {
+    p256: true,
+    p384: true,
+    p521: true,
+    secp256k1: true,
+    curve25519: algo === _enums2.default.publicKey.ecdh,
+    brainpoolP256r1: true,
+    brainpoolP384r1: true,
+    brainpoolP512r1: true
+  };
+
+  // Check whether the given curve is supported
+  const curveName = oid.getName();
+  if (!supportedCurves[curveName]) {
+    return false;
+  }
+
+  if (curveName === 'curve25519') {
+    d = d.slice().reverse();
+    // Re-derive public point Q'
+
+    var _nacl$box$keyPair$fro = _naclFastLight2.default.box.keyPair.fromSecretKey(d);
+
+    const publicKey = _nacl$box$keyPair$fro.publicKey;
+
+
+    Q = new Uint8Array(Q);
+    const dG = new Uint8Array([0x40, ...publicKey]); // Add public key prefix
+    if (!_util2.default.equalsUint8Array(dG, Q)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  const curve = await (0, _indutnyKey.getIndutnyCurve)(curveName);
+  try {
+    // Parse Q and check that it is on the curve but not at infinity
+    Q = (0, _indutnyKey.keyFromPublic)(curve, Q).getPublic();
+  } catch (validationErrors) {
+    return false;
+  }
+
+  /**
+   * Re-derive public point Q' = dG from private key
+   * Expect Q == Q'
+   */
+  d = new _bn2.default(d);
+  const dG = (0, _indutnyKey.keyFromPrivate)(curve, d).getPublic();
+  if (!dG.eq(Q)) {
+    return false;
+  }
+
+  return true;
+}
+
 exports.default = Curve;
 exports.curves = curves;
 exports.webCurves = webCurves;
@@ -31232,6 +29963,7 @@ exports.getPreferredHashAlgo = getPreferredHashAlgo;
 exports.jwkToRawPublic = jwkToRawPublic;
 exports.rawPublicToJwk = rawPublicToJwk;
 exports.privateToJwk = privateToJwk;
+exports.validateStandardParams = validateStandardParams;
 
 //////////////////////////
 //                      //
@@ -31387,10 +30119,6 @@ var _hash = require('../../hash');
 
 var _hash2 = _interopRequireDefault(_hash);
 
-var _kdf_params = require('../../../type/kdf_params');
-
-var _kdf_params2 = _interopRequireDefault(_kdf_params);
-
 var _enums = require('../../../enums');
 
 var _enums2 = _interopRequireDefault(_enums);
@@ -31406,10 +30134,46 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const webCrypto = _util2.default.getWebCrypto();
 const nodeCrypto = _util2.default.getNodeCrypto();
 
+/**
+ * Validate ECDH parameters
+ * @param {module:type/oid}    oid Elliptic curve object identifier
+ * @param {Uint8Array}         Q   ECDH public point
+ * @param {Uint8Array}         d   ECDH secret scalar
+ * @returns {Promise<Boolean>} whether params are valid
+ * @async
+ */
+async function validateParams(oid, Q, d) {
+  return (0, _curves.validateStandardParams)(_enums2.default.publicKey.ecdh, oid, Q, d);
+}
+
 // Build Param for ECDH algorithm (RFC 6637)
-function buildEcdhParam(public_algo, oid, cipher_algo, hash_algo, fingerprint) {
-  const kdf_params = new _kdf_params2.default([hash_algo, cipher_algo]);
-  return _util2.default.concatUint8Array([oid.write(), new Uint8Array([public_algo]), kdf_params.write(), _util2.default.str_to_Uint8Array("Anonymous Sender    "), fingerprint.subarray(0, 20)]);
+function buildEcdhParam(public_algo, oid, kdfParams, fingerprint) {
+  return _util2.default.concatUint8Array([oid.write(), new Uint8Array([public_algo]), kdfParams.write(), _util2.default.str_to_Uint8Array("Anonymous Sender    "), fingerprint.subarray(0, 20)]);
+}
+
+/**
+ * Parses MPI params and returns them as byte arrays of fixed length
+ * @param {Array} params key parameters
+ * @returns {Object} parameters in the form
+ *  { oid, kdfParams, d: Uint8Array, Q: Uint8Array }
+ */
+function parseParams(params) {
+  if (params.length < 3 || params.length > 4) {
+    throw new Error('Unexpected number of parameters');
+  }
+
+  const oid = params[0];
+  const curve = new _curves2.default(oid);
+  const parsedParams = { oid };
+  // The public point never has leading zeros, as it is prefixed by 0x40 or 0x04
+  parsedParams.Q = params[1].toUint8Array();
+  parsedParams.kdfParams = params[2];
+
+  if (params.length === 4) {
+    parsedParams.d = params[3].toUint8Array('be', curve.payloadSize);
+  }
+
+  return parsedParams;
 }
 
 // Key Derivation Function (RFC 6637)
@@ -31477,15 +30241,14 @@ async function genPublicEphemeralKey(curve, Q) {
  * Encrypt and wrap a session key
  *
  * @param  {module:type/oid}        oid          Elliptic curve object identifier
- * @param  {module:enums.symmetric} cipher_algo  Symmetric cipher to use
- * @param  {module:enums.hash}      hash_algo    Hash algorithm to use
+ * @param  {module:type/kdf_params} kdfParams    KDF params including cipher and algorithm to use
  * @param  {module:type/mpi}        m            Value derived from session key (RFC 6637)
  * @param  {Uint8Array}             Q            Recipient public key
- * @param  {String}                 fingerprint  Recipient fingerprint
+ * @param  {Uint8Array}             fingerprint  Recipient fingerprint
  * @returns {Promise<{publicKey: Uint8Array, wrappedKey: Uint8Array}>}
  * @async
  */
-async function encrypt(oid, cipher_algo, hash_algo, m, Q, fingerprint) {
+async function encrypt(oid, kdfParams, m, Q, fingerprint) {
   const curve = new _curves2.default(oid);
 
   var _ref2 = await genPublicEphemeralKey(curve, Q);
@@ -31493,9 +30256,9 @@ async function encrypt(oid, cipher_algo, hash_algo, m, Q, fingerprint) {
   const publicKey = _ref2.publicKey,
         sharedKey = _ref2.sharedKey;
 
-  const param = buildEcdhParam(_enums2.default.publicKey.ecdh, oid, cipher_algo, hash_algo, fingerprint);
-  cipher_algo = _enums2.default.read(_enums2.default.symmetric, cipher_algo);
-  const Z = await kdf(hash_algo, sharedKey, _cipher2.default[cipher_algo].keySize, param);
+  const param = buildEcdhParam(_enums2.default.publicKey.ecdh, oid, kdfParams, fingerprint);
+  const cipher_algo = _enums2.default.read(_enums2.default.symmetric, kdfParams.cipher);
+  const Z = await kdf(kdfParams.hash, sharedKey, _cipher2.default[cipher_algo].keySize, param);
   const wrappedKey = _aes_kw2.default.wrap(Z, m.toString());
   return { publicKey, wrappedKey };
 }
@@ -31542,30 +30305,29 @@ async function genPrivateEphemeralKey(curve, V, Q, d) {
  * Decrypt and unwrap the value derived from session key
  *
  * @param  {module:type/oid}        oid          Elliptic curve object identifier
- * @param  {module:enums.symmetric} cipher_algo  Symmetric cipher to use
- * @param  {module:enums.hash}      hash_algo    Hash algorithm to use
+ * @param  {module:type/kdf_params} kdfParams    KDF params including cipher and algorithm to use
  * @param  {Uint8Array}             V            Public part of ephemeral key
  * @param  {Uint8Array}             C            Encrypted and wrapped value derived from session key
  * @param  {Uint8Array}             Q            Recipient public key
  * @param  {Uint8Array}             d            Recipient private key
- * @param  {String}                 fingerprint  Recipient fingerprint
+ * @param  {Uint8Array}             fingerprint  Recipient fingerprint
  * @returns {Promise<BN>}                        Value derived from session key
  * @async
  */
-async function decrypt(oid, cipher_algo, hash_algo, V, C, Q, d, fingerprint) {
+async function decrypt(oid, kdfParams, V, C, Q, d, fingerprint) {
   const curve = new _curves2.default(oid);
 
   var _ref3 = await genPrivateEphemeralKey(curve, V, Q, d);
 
   const sharedKey = _ref3.sharedKey;
 
-  const param = buildEcdhParam(_enums2.default.publicKey.ecdh, oid, cipher_algo, hash_algo, fingerprint);
-  cipher_algo = _enums2.default.read(_enums2.default.symmetric, cipher_algo);
+  const param = buildEcdhParam(_enums2.default.publicKey.ecdh, oid, kdfParams, fingerprint);
+  const cipher_algo = _enums2.default.read(_enums2.default.symmetric, kdfParams.cipher);
   let err;
   for (let i = 0; i < 3; i++) {
     try {
       // Work around old go crypto bug and old OpenPGP.js bug, respectively.
-      const Z = await kdf(hash_algo, sharedKey, _cipher2.default[cipher_algo].keySize, param, i === 1, i === 2);
+      const Z = await kdf(kdfParams.hash, sharedKey, _cipher2.default[cipher_algo].keySize, param, i === 1, i === 2);
       return new _bn2.default(_aes_kw2.default.unwrap(Z, C));
     } catch (e) {
       err = e;
@@ -31740,9 +30502,9 @@ async function nodePublicEphemeralKey(curve, Q) {
   return { publicKey, sharedKey };
 }
 
-exports.default = { encrypt, decrypt, genPublicEphemeralKey, genPrivateEphemeralKey, buildEcdhParam, kdf, webPublicEphemeralKey, webPrivateEphemeralKey, ellipticPublicEphemeralKey, ellipticPrivateEphemeralKey, nodePublicEphemeralKey, nodePrivateEphemeralKey };
+exports.default = { encrypt, decrypt, genPublicEphemeralKey, genPrivateEphemeralKey, buildEcdhParam, kdf, webPublicEphemeralKey, webPrivateEphemeralKey, ellipticPublicEphemeralKey, ellipticPrivateEphemeralKey, nodePublicEphemeralKey, nodePrivateEphemeralKey, validateParams, parseParams };
 
-},{"../../../enums":113,"../../../type/kdf_params":153,"../../../util":158,"../../aes_kw":80,"../../cipher":86,"../../hash":92,"../../random":109,"./curves":100,"./indutnyKey":105,"bn.js":16,"tweetnacl/nacl-fast-light.js":72}],102:[function(require,module,exports){
+},{"../../../enums":113,"../../../util":158,"../../aes_kw":80,"../../cipher":86,"../../hash":92,"../../random":109,"./curves":100,"./indutnyKey":105,"bn.js":16,"tweetnacl/nacl-fast-light.js":72}],102:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -31760,6 +30522,14 @@ var _enums2 = _interopRequireDefault(_enums);
 var _util = require('../../../util');
 
 var _util2 = _interopRequireDefault(_util);
+
+var _random = require('../../random');
+
+var _random2 = _interopRequireDefault(_random);
+
+var _hash = require('../../hash');
+
+var _hash2 = _interopRequireDefault(_hash);
 
 var _curves = require('./curves');
 
@@ -31822,7 +30592,13 @@ async function sign(oid, hash_algo, message, publicKey, privateKey, hashed) {
             // Need to await to make sure browser succeeds
             return await webSign(curve, hash_algo, message, keyPair);
           } catch (err) {
-            _util2.default.print_debug_error("Browser did not support signing: " + err.message);
+            // We do not fallback if the error is related to key integrity
+            // Unfortunaley Safari does not support p521 and throws a DataError when using it
+            // So we need to always fallback for that curve
+            if (curve.name !== 'p521' && (err.name === 'DataError' || err.name === 'OperationError')) {
+              throw err;
+            }
+            _util2.default.print_debug_error("Browser did not support verifying: " + err.message);
           }
           break;
         }
@@ -31860,6 +30636,12 @@ async function verify(oid, hash_algo, signature, message, publicKey, hashed) {
           // Need to await to make sure browser succeeds
           return await webVerify(curve, hash_algo, signature, message, publicKey);
         } catch (err) {
+          // We do not fallback if the error is related to key integrity
+          // Unfortunaley Safari does not support p521 and throws a DataError when using it
+          // So we need to always fallback for that curve
+          if (curve.name !== 'p521' && (err.name === 'DataError' || err.name === 'OperationError')) {
+            throw err;
+          }
           _util2.default.print_debug_error("Browser did not support verifying: " + err.message);
         }
         break;
@@ -31871,7 +30653,66 @@ async function verify(oid, hash_algo, signature, message, publicKey, hashed) {
   return ellipticVerify(curve, signature, digest, publicKey);
 }
 
-exports.default = { sign, verify, ellipticVerify, ellipticSign };
+/**
+ * Validate EcDSA parameters
+ * @param {module:type/oid}    oid Elliptic curve object identifier
+ * @param {Uint8Array}         Q   EcDSA public point
+ * @param {Uint8Array}         d   EcDSA secret scalar
+ * @returns {Promise<Boolean>} whether params are valid
+ * @async
+ */
+async function validateParams(oid, Q, d) {
+  const curve = new _curves2.default(oid);
+  // Reject curves x25519 and ed25519
+  if (curve.keyType !== _enums2.default.publicKey.ecdsa) {
+    return false;
+  }
+
+  // To speed up the validation, we try to use node- or webcrypto when available
+  // and sign + verify a random message
+  switch (curve.type) {
+    case 'web':
+    case 'node':
+      {
+        const message = await _random2.default.getRandomBytes(8);
+        const hashAlgo = _enums2.default.hash.sha256;
+        const hashed = await _hash2.default.digest(hashAlgo, message);
+        try {
+          const signature = await sign(oid, hashAlgo, message, Q, d, hashed);
+          return await verify(oid, hashAlgo, signature, message, Q, hashed);
+        } catch (err) {
+          return false;
+        }
+      }
+    default:
+      return (0, _curves.validateStandardParams)(_enums2.default.publicKey.ecdsa, oid, Q, d);
+  }
+}
+
+/**
+ * Parses MPI params and returns them as byte arrays of fixed length
+ * @param {Array} params key parameters
+ * @returns {Object} parameters in the form
+ *  { oid, d: Uint8Array, Q: Uint8Array }
+ */
+function parseParams(params) {
+  if (params.length < 2 || params.length > 3) {
+    throw new Error('Unexpected number of parameters');
+  }
+
+  const oid = params[0];
+  const curve = new _curves2.default(oid);
+  const parsedParams = { oid };
+  // The public point never has leading zeros, as it is prefixed by 0x40 or 0x04
+  parsedParams.Q = params[1].toUint8Array();
+  if (params.length === 3) {
+    parsedParams.d = params[2].toUint8Array('be', curve.payloadSize);
+  }
+
+  return parsedParams;
+}
+
+exports.default = { sign, verify, ellipticVerify, ellipticSign, validateParams, parseParams };
 
 //////////////////////////
 //                      //
@@ -31997,7 +30838,7 @@ const SubjectPublicKeyInfo = nodeCrypto ? asn1.define('SubjectPublicKeyInfo', fu
   this.seq().obj(this.key('algorithm').use(AlgorithmIdentifier), this.key('subjectPublicKey').bitstr());
 }) : undefined;
 
-},{"../../../enums":113,"../../../util":158,"./curves":100,"./indutnyKey":105,"asn1.js":"asn1.js","bn.js":16}],103:[function(require,module,exports){
+},{"../../../enums":113,"../../../util":158,"../../hash":92,"../../random":109,"./curves":100,"./indutnyKey":105,"asn1.js":"asn1.js","bn.js":16}],103:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -32085,7 +30926,57 @@ async function verify(oid, hash_algo, { R, S }, m, publicKey, hashed) {
   return _naclFastLight2.default.sign.detached.verify(hashed, signature, publicKey.subarray(1));
 }
 
-exports.default = { sign, verify };
+/**
+ * Validate EdDSA parameters
+ * @param {module:type/oid}    oid Elliptic curve object identifier
+ * @param {Uint8Array}         Q   EdDSA public point
+ * @param {Uint8Array}         k   EdDSA secret seed
+ * @returns {Promise<Boolean>} whether params are valid
+ * @async
+ */
+async function validateParams(oid, Q, k) {
+  // Check whether the given curve is supported
+  if (oid.getName() !== 'ed25519') {
+    return false;
+  }
+
+  /**
+   * Derive public point Q' = dG from private key
+   * and expect Q == Q'
+   */
+
+  var _nacl$sign$keyPair$fr = _naclFastLight2.default.sign.keyPair.fromSeed(k);
+
+  const publicKey = _nacl$sign$keyPair$fr.publicKey;
+
+  const dG = new Uint8Array([0x40, ...publicKey]); // Add public key prefix
+  return _util2.default.equalsUint8Array(Q, dG);
+}
+
+/**
+ * Parses MPI params and returns them as byte arrays of fixed length
+ * @param {Array} params key parameters
+ * @returns {Object} parameters in the form
+ *  { oid, seed: Uint8Array, Q: Uint8Array }
+ */
+function parseParams(params) {
+  if (params.length < 2 || params.length > 3) {
+    throw new Error('Unexpected number of parameters');
+  }
+
+  const parsedParams = {
+    oid: params[0],
+    Q: params[1].toUint8Array('be', 33)
+  };
+
+  if (params.length === 3) {
+    parsedParams.seed = params[2].toUint8Array('be', 32);
+  }
+
+  return parsedParams;
+}
+
+exports.default = { sign, verify, validateParams, parseParams };
 
 },{"../../../util":158,"hash.js/lib/hash/sha/512":43,"tweetnacl/nacl-fast-light.js":72}],104:[function(require,module,exports){
 'use strict';
@@ -32832,6 +31723,55 @@ exports.default = {
     };
   },
 
+  /**
+   * Validate RSA parameters
+   * @param {Uint8Array}         n RSA public modulus
+   * @param {Uint8Array}         e RSA public exponent
+   * @param {Uint8Array}         d RSA private exponent
+   * @param {Uint8Array}         p RSA private prime p
+   * @param {Uint8Array}         q RSA private prime q
+   * @param {Uint8Array}         u RSA inverse of p w.r.t. q
+   * @returns {Promise<Boolean>} whether params are valid
+   * @async
+   */
+  validateParams: async function validateParams(n, e, d, p, q, u) {
+    n = new _bn2.default(n);
+    p = new _bn2.default(p);
+    q = new _bn2.default(q);
+
+    // expect pq = n
+    if (!p.mul(q).eq(n)) {
+      return false;
+    }
+
+    const one = new _bn2.default(1);
+    const two = new _bn2.default(2);
+    // expect p*u = 1 mod q
+    u = new _bn2.default(u);
+    if (!p.mul(u).umod(q).eq(one)) {
+      return false;
+    }
+
+    e = new _bn2.default(e);
+    d = new _bn2.default(d);
+    /**
+     * In RSA pkcs#1 the exponents (d, e) are inverses modulo lcm(p-1, q-1)
+     * We check that [de = 1 mod (p-1)] and [de = 1 mod (q-1)]
+     * By CRT on coprime factors of (p-1, q-1) it follows that [de = 1 mod lcm(p-1, q-1)]
+     *
+     * We blind the multiplication with r, and check that rde = r mod lcm(p-1, q-1)
+     */
+    const r = await _random2.default.getRandomBN(two, two.shln(n.bitLength() / 3)); // r in [ 2, 2^{|n|/3} ) < p and q
+    const rde = r.mul(d).mul(e);
+
+    const areInverses = rde.umod(p.sub(one)).eq(r) && rde.umod(q.sub(one)).eq(r);
+    if (!areInverses) {
+      return false;
+    }
+
+    return true;
+  },
+
   bnSign: async function bnSign(hash_algo, n, d, hashed) {
     n = new _bn2.default(n);
     const m = new _bn2.default((await _pkcs2.default.emsa.encode(hash_algo, hashed, n.byteLength())), 16);
@@ -33336,20 +32276,26 @@ exports.default = {
         }
       case _enums2.default.publicKey.ecdsa:
         {
-          const oid = pub_MPIs[0];
+          var _publicKey$elliptic$e = _public_key2.default.elliptic.ecdsa.parseParams(pub_MPIs);
+
+          const oid = _publicKey$elliptic$e.oid,
+                Q = _publicKey$elliptic$e.Q;
+
           const signature = { r: msg_MPIs[0].toUint8Array(), s: msg_MPIs[1].toUint8Array() };
-          const Q = pub_MPIs[1].toUint8Array();
           return _public_key2.default.elliptic.ecdsa.verify(oid, hash_algo, signature, data, Q, hashed);
         }
       case _enums2.default.publicKey.eddsa:
         {
-          const oid = pub_MPIs[0];
+          var _publicKey$elliptic$e2 = _public_key2.default.elliptic.eddsa.parseParams(pub_MPIs);
+
+          const oid = _publicKey$elliptic$e2.oid,
+                Q = _publicKey$elliptic$e2.Q;
           // EdDSA signature params are expected in little-endian format
+
           const signature = {
             R: msg_MPIs[0].toUint8Array('le', 32),
             S: msg_MPIs[1].toUint8Array('le', 32)
           };
-          const Q = pub_MPIs[1].toUint8Array('be', 33);
           return _public_key2.default.elliptic.eddsa.verify(oid, hash_algo, signature, data, Q, hashed);
         }
       default:
@@ -33404,18 +32350,24 @@ exports.default = {
         }
       case _enums2.default.publicKey.ecdsa:
         {
-          const oid = key_params[0];
-          const Q = key_params[1].toUint8Array();
-          const d = key_params[2].toUint8Array();
+          var _publicKey$elliptic$e3 = _public_key2.default.elliptic.ecdsa.parseParams(key_params);
+
+          const oid = _publicKey$elliptic$e3.oid,
+                Q = _publicKey$elliptic$e3.Q,
+                d = _publicKey$elliptic$e3.d;
+
           const signature = await _public_key2.default.elliptic.ecdsa.sign(oid, hash_algo, data, Q, d, hashed);
           return _util2.default.concatUint8Array([_util2.default.Uint8Array_to_MPI(signature.r), _util2.default.Uint8Array_to_MPI(signature.s)]);
         }
       case _enums2.default.publicKey.eddsa:
         {
-          const oid = key_params[0];
-          const Q = key_params[1].toUint8Array('be', 33);
-          const d = key_params[2].toUint8Array('be', 32);
-          const signature = await _public_key2.default.elliptic.eddsa.sign(oid, hash_algo, data, Q, d, hashed);
+          var _publicKey$elliptic$e4 = _public_key2.default.elliptic.eddsa.parseParams(key_params);
+
+          const oid = _publicKey$elliptic$e4.oid,
+                Q = _publicKey$elliptic$e4.Q,
+                seed = _publicKey$elliptic$e4.seed;
+
+          const signature = await _public_key2.default.elliptic.eddsa.sign(oid, hash_algo, data, Q, seed, hashed);
           return _util2.default.concatUint8Array([_util2.default.Uint8Array_to_MPI(signature.R), _util2.default.Uint8Array_to_MPI(signature.S)]);
         }
       default:
@@ -36026,6 +34978,41 @@ Key.prototype.getEncryptionKey = async function (keyId, date = new Date(), userI
 };
 
 /**
+ * Returns all keys that are available for decryption, matching the keyId when given
+ * This is useful to retrieve keys for session key decryption
+ * @param  {module:type/keyid} keyId, optional
+ * @param  {Date}              date, optional
+ * @param  {String}            userId, optional
+ * @returns {Promise<Array<module:key.Key|module:key~SubKey>>} array of decryption keys
+ * @async
+ */
+Key.prototype.getDecryptionKeys = async function (keyId, date = new Date(), userId = {}) {
+  await this.verifyPrimaryKey(date, userId);
+  const primaryKey = this.keyPacket;
+  const keys = [];
+  for (let i = 0; i < this.subKeys.length; i++) {
+    if (!keyId || this.subKeys[i].getKeyId().equals(keyId, true)) {
+      try {
+        await this.subKeys[i].verify(primaryKey, date);
+        const dataToVerify = { key: primaryKey, bind: this.subKeys[i].keyPacket };
+        const bindingSignature = await helper.getLatestValidSignature(this.subKeys[i].bindingSignatures, primaryKey, _enums2.default.signature.subkey_binding, dataToVerify, date);
+        if (bindingSignature && helper.isValidEncryptionKeyPacket(this.subKeys[i].keyPacket, bindingSignature)) {
+          keys.push(this.subKeys[i]);
+        }
+      } catch (e) {}
+    }
+  }
+
+  // evaluate primary key
+  const primaryUser = await this.getPrimaryUser(date, userId);
+  if ((!keyId || primaryKey.getKeyId().equals(keyId, true)) && helper.isValidEncryptionKeyPacket(primaryKey, primaryUser.selfCertification)) {
+    keys.push(this);
+  }
+
+  return keys;
+};
+
+/**
  * Encrypts all secret key and subkey packets matching keyId
  * @param  {String|Array<String>} passphrases - if multiple passphrases, then should be in same order as packets each should encrypt
  * @param  {module:type/keyid} keyId
@@ -36057,6 +35044,7 @@ Key.prototype.encrypt = async function (passphrases, keyId = null) {
  * @param  {String|Array<String>} passphrases
  * @param  {module:type/keyid} keyId
  * @returns {Promise<Boolean>} true if all matching key and subkey packets decrypted successfully
+ * @throws {Error} if any matching key or subkey packets did not decrypt successfully
  * @async
  */
 Key.prototype.decrypt = async function (passphrases, keyId = null) {
@@ -36071,6 +35059,8 @@ Key.prototype.decrypt = async function (passphrases, keyId = null) {
     await Promise.all(passphrases.map(async function (passphrase) {
       try {
         await key.keyPacket.decrypt(passphrase);
+        // If we are decrypting a single key packet, we also validate it directly
+        if (keyId) await key.keyPacket.validate();
         decrypted = true;
       } catch (e) {
         error = e;
@@ -36081,31 +35071,55 @@ Key.prototype.decrypt = async function (passphrases, keyId = null) {
     }
     return decrypted;
   }));
+
+  if (!keyId) {
+    // The full key should be decrypted and we can validate it all
+    await this.validate();
+  }
+
   return results.every(result => result === true);
 };
 
 /**
- * Check whether the private and public key parameters of the primary key match
- * @returns {Promise<Boolean>} true if the primary key parameters correspond
+ * Check whether the private and public primary key parameters correspond
+ * Together with verification of binding signatures, this guarantees key integrity
+ * In case of gnu-dummy primary key, it is enough to validate any signing subkeys
+ *   otherwise all encryption subkeys are validated
+ * If only gnu-dummy keys are found, we cannot properly validate so we throw an error
+ * @throws {Error} if validation was not successful and the key cannot be trusted
  * @async
  */
 Key.prototype.validate = async function () {
   if (!this.isPrivate()) {
-    throw new Error("Can't validate a public key");
+    throw new Error("Cannot validate a public key");
   }
-  const signingKeyPacket = this.primaryKey;
-  if (!signingKeyPacket.isDecrypted()) {
-    throw new Error("Key is not decrypted");
+
+  let signingKeyPacket;
+  if (!this.keyPacket.isDummy()) {
+    signingKeyPacket = this.primaryKey;
+  } else {
+    /**
+     * It is enough to validate any signing keys
+     * since its binding signatures are also checked
+     */
+    const signingKey = await this.getSigningKey(null, null);
+    // This could again be a dummy key
+    if (signingKey && !signingKey.keyPacket.isDummy()) {
+      signingKeyPacket = signingKey.keyPacket;
+    }
   }
-  const data = new _packet2.default.Literal();
-  data.setBytes(new Uint8Array(), 'binary');
-  const signature = new _packet2.default.Signature();
-  signature.publicKeyAlgorithm = signingKeyPacket.algorithm;
-  signature.hashAlgorithm = _enums2.default.hash.sha256;
-  const signatureType = _enums2.default.signature.binary;
-  signature.signatureType = signatureType;
-  await signature.sign(signingKeyPacket, data);
-  await signature.verify(signingKeyPacket, signatureType, data);
+
+  if (signingKeyPacket) {
+    return signingKeyPacket.validate();
+  } else {
+    const keys = this.getKeys();
+    const allDummies = keys.map(key => key.keyPacket.isDummy()).every(Boolean);
+    if (allDummies) {
+      throw new Error("Cannot validate an all-gnu-dummy key");
+    }
+
+    return Promise.all(keys.map(async key => key.keyPacket.validate()));
+  }
 };
 
 /**
@@ -37633,7 +36647,8 @@ Message.prototype.decryptSessionKeys = async function (privateKeys, passwords) {
           }
         } catch (e) {}
 
-        const privateKeyPackets = privateKey.getKeys(keyPacket.publicKeyId).map(key => key.keyPacket);
+        // do not check key expiration to allow decryption of old messages
+        const privateKeyPackets = (await privateKey.getDecryptionKeys(keyPacket.publicKeyId, null)).map(key => key.keyPacket);
         await Promise.all(privateKeyPackets.map(async function (privateKeyPacket) {
           if (!privateKeyPacket) {
             return;
@@ -39324,7 +38339,7 @@ function clonePackets(options) {
   if (options.message) {
     //could be either a Message or CleartextMessage object
     if (options.message instanceof _message.Message) {
-      options.message = options.message.packets;
+      options.message = { packets: options.message.packets, fromStream: options.message.fromStream };
     } else if (options.message instanceof _cleartext.CleartextMessage) {
       options.message = { text: options.message.text, signature: options.message.signature.packets };
     }
@@ -39412,8 +38427,10 @@ function packetlistCloneToKey(clone) {
 }
 
 function packetlistCloneToMessage(clone) {
-  const packetlist = _packetlist2.default.fromStructuredClone(clone);
-  return new _message.Message(packetlist);
+  const packetlist = _packetlist2.default.fromStructuredClone(clone.packets);
+  const message = new _message.Message(packetlist);
+  message.fromStream = clone.fromStream;
+  return message;
 }
 
 function packetlistCloneToCleartextMessage(clone) {
@@ -40947,7 +39964,7 @@ PublicKey.prototype.getCreationTime = function () {
 
 /**
  * Calculates the key id of the key
- * @returns {String} A 8 byte key id
+ * @returns {module:type/keyid} A 8 byte key id
  */
 PublicKey.prototype.getKeyId = function () {
   if (this.keyid) {
@@ -41520,7 +40537,7 @@ SecretKey.prototype.write = function () {
   }
   arr.push(new Uint8Array(optionalFieldsArr));
 
-  if (!this.s2k || this.s2k.type !== 'gnu-dummy') {
+  if (!this.isDummy()) {
     if (!this.s2k_usage) {
       const cleartextParams = write_cleartext_params(this.params, this.algorithm);
       this.keyMaterial = _util2.default.concatUint8Array([cleartextParams, _util2.default.write_checksum(cleartextParams)]);
@@ -41544,6 +40561,14 @@ SecretKey.prototype.isDecrypted = function () {
 };
 
 /**
+ * Check whether this is a gnu-dummy key
+ * @returns {Boolean}
+ */
+SecretKey.prototype.isDummy = function () {
+  return !!(this.s2k && this.s2k.type === 'gnu-dummy');
+};
+
+/**
  * Encrypt the payload. By default, we use aes256 and iterated, salted string
  * to key specifier. If the key is in a decrypted state (isEncrypted === false)
  * and the passphrase is empty or undefined, the key will be set as not encrypted.
@@ -41553,7 +40578,7 @@ SecretKey.prototype.isDecrypted = function () {
  * @async
  */
 SecretKey.prototype.encrypt = async function (passphrase) {
-  if (this.s2k && this.s2k.type === 'gnu-dummy') {
+  if (this.isDummy()) {
     return false;
   }
 
@@ -41602,7 +40627,7 @@ async function produceEncryptionKey(s2k, passphrase, algorithm) {
  * @async
  */
 SecretKey.prototype.decrypt = async function (passphrase) {
-  if (this.s2k && this.s2k.type === 'gnu-dummy') {
+  if (this.isDummy()) {
     this.isEncrypted = false;
     return false;
   }
@@ -41656,6 +40681,27 @@ SecretKey.prototype.generate = async function (bits, curve) {
   const algo = _enums2.default.write(_enums2.default.publicKey, this.algorithm);
   this.params = await _crypto2.default.generateParams(algo, bits, curve);
   this.isEncrypted = false;
+};
+
+/**
+ * Checks that the key parameters are consistent
+ * @throws {Error} if validation was not successful
+ * @async
+ */
+SecretKey.prototype.validate = async function () {
+  if (this.isDummy()) {
+    return;
+  }
+
+  if (!this.isDecrypted()) {
+    throw new Error('Key is not decrypted');
+  }
+
+  const algo = _enums2.default.write(_enums2.default.publicKey, this.algorithm);
+  const validParams = await _crypto2.default.validateParams(algo, this.params);
+  if (!validParams) {
+    throw new Error('Key is invalid');
+  }
 };
 
 /**
@@ -41949,13 +40995,8 @@ Signature.prototype.sign = async function (key, data, detached = false, streamin
   }
   const arr = [new Uint8Array([this.version, signatureType, publicKeyAlgorithm, hashAlgorithm])];
 
-  if (key.version === 5) {
-    // We could also generate this subpacket for version 4 keys, but for
-    // now we don't.
-    this.issuerKeyVersion = key.version;
-    this.issuerFingerprint = key.getFingerprintBytes();
-  }
-
+  this.issuerKeyVersion = key.version;
+  this.issuerFingerprint = key.getFingerprintBytes();
   this.issuerKeyId = key.getKeyId();
 
   // Add hashed subpackets
@@ -43805,33 +42846,6 @@ exports.default = ECDHSymmetricKey;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _enums = require('../enums.js');
-
-var _enums2 = _interopRequireDefault(_enums);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * @constructor
- * @param  {enums.hash}       hash    Hash algorithm
- * @param  {enums.symmetric}  cipher  Symmetric algorithm
- */
-function KDFParams(data) {
-  if (data && data.length === 2) {
-    this.hash = data[0];
-    this.cipher = data[1];
-  } else {
-    this.hash = _enums2.default.hash.sha1;
-    this.cipher = _enums2.default.symmetric.aes128;
-  }
-}
-
-/**
- * Read KDFParams from an Uint8Array
- * @param  {Uint8Array}  input  Where to read the KDFParams from
- * @returns {Number}             Number of read bytes
- */
 // OpenPGP.js - An OpenPGP implementation in javascript
 // Copyright (C) 2015-2016 Decentral
 //
@@ -43861,6 +42875,29 @@ function KDFParams(data) {
  * @module type/kdf_params
  */
 
+/**
+ * @constructor
+ * @param  {enums.hash}       hash    Hash algorithm
+ * @param  {enums.symmetric}  cipher  Symmetric algorithm
+ */
+function KDFParams(data) {
+  if (data) {
+    const hash = data.hash,
+          cipher = data.cipher;
+
+    this.hash = hash;
+    this.cipher = cipher;
+  } else {
+    this.hash = null;
+    this.cipher = null;
+  }
+}
+
+/**
+ * Read KDFParams from an Uint8Array
+ * @param  {Uint8Array}  input  Where to read the KDFParams from
+ * @returns {Number}             Number of read bytes
+ */
 KDFParams.prototype.read = function (input) {
   if (input.length < 4 || input[0] !== 3 || input[1] !== 1) {
     throw new Error('Cannot read KDFParams');
@@ -43879,12 +42916,15 @@ KDFParams.prototype.write = function () {
 };
 
 KDFParams.fromClone = function (clone) {
-  return new KDFParams([clone.hash, clone.cipher]);
+  const hash = clone.hash,
+        cipher = clone.cipher;
+
+  return new KDFParams({ hash, cipher });
 };
 
 exports.default = KDFParams;
 
-},{"../enums.js":113}],154:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -43941,10 +42981,18 @@ Keyid.prototype.read = function (bytes) {
   this.bytes = _util2.default.Uint8Array_to_str(bytes.subarray(0, 8));
 };
 
+/**
+ * Serializes the Key ID
+ * @returns {Uint8Array} Key ID as a Uint8Array
+ */
 Keyid.prototype.write = function () {
   return _util2.default.str_to_Uint8Array(this.bytes);
 };
 
+/**
+ * Returns the Key ID represented as a hexadecimal string
+ * @returns {String} Key ID as a hexadecimal string
+ */
 Keyid.prototype.toHex = function () {
   return _util2.default.str_to_hex(this.bytes);
 };
@@ -43958,10 +43006,18 @@ Keyid.prototype.equals = function (keyid, matchWildcard = false) {
   return matchWildcard && (keyid.isWildcard() || this.isWildcard()) || this.bytes === keyid.bytes;
 };
 
+/**
+ * Checks to see if the Key ID is unset
+ * @returns {Boolean} true if the Key ID is null
+ */
 Keyid.prototype.isNull = function () {
   return this.bytes === '';
 };
 
+/**
+ * Checks to see if the Key ID is a "wildcard" Key ID (all zeros)
+ * @returns {Boolean} true if this is a wildcard Key ID
+ */
 Keyid.prototype.isWildcard = function () {
   return (/^0+$/.test(this.toHex())
   );
@@ -45450,21 +44506,28 @@ WKD.prototype.lookup = async function (options) {
 
   const localEncoded = _util2.default.encodeZBase32((await _crypto2.default.hash.sha1(_util2.default.str_to_Uint8Array(localPart.toLowerCase()))));
 
-  const url = `https://${domain}/.well-known/openpgpkey/hu/${localEncoded}`;
+  const urlAdvanced = `https://openpgpkey.${domain}/.well-known/openpgpkey/${domain}/hu/${localEncoded}`;
+  const urlDirect = `https://${domain}/.well-known/openpgpkey/hu/${localEncoded}`;
 
-  return fetch(url).then(function (response) {
-    if (response.status === 200) {
-      return response.arrayBuffer();
+  let response;
+  try {
+    response = await fetch(urlAdvanced);
+    if (response.status !== 200) {
+      throw new Error('Advanced WKD lookup failed: ' + response.statusText);
     }
-  }).then(function (publicKey) {
-    if (publicKey) {
-      const rawBytes = new Uint8Array(publicKey);
-      if (options.rawBytes) {
-        return rawBytes;
-      }
-      return keyMod.read(rawBytes);
+  } catch (err) {
+    _util2.default.print_debug_error(err);
+    response = await fetch(urlDirect);
+    if (response.status !== 200) {
+      throw new Error('Direct WKD lookup failed: ' + response.statusText);
     }
-  });
+  }
+
+  const rawBytes = new Uint8Array((await response.arrayBuffer()));
+  if (options.rawBytes) {
+    return rawBytes;
+  }
+  return keyMod.read(rawBytes);
 };
 
 exports.default = WKD;
@@ -45583,6 +44646,7 @@ function AsyncProxy({ path = 'openpgp.worker.js', n = 1, workers = [], config } 
     worker.onmessage = handleMessage(workerId++);
     worker.onerror = e => {
       worker.loadedResolve(false);
+      // eslint-disable-next-line no-console
       console.error('Unhandled error in openpgp worker: ' + e.message + ' (' + e.filename + ':' + e.lineno + ')');
       return false;
     };
@@ -45684,14 +44748,1406 @@ exports.default = AsyncProxy;
 
 /***/ }),
 
-/***/ 747:
-/***/ (function(module) {
+/***/ 159:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
 
-module.exports = require("fs");
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const os = __importStar(__webpack_require__(87));
+const events = __importStar(__webpack_require__(614));
+const child = __importStar(__webpack_require__(129));
+const path = __importStar(__webpack_require__(622));
+const io = __importStar(__webpack_require__(436));
+const ioUtil = __importStar(__webpack_require__(962));
+/* eslint-disable @typescript-eslint/unbound-method */
+const IS_WINDOWS = process.platform === 'win32';
+/*
+ * Class for running command line tools. Handles quoting and arg parsing in a platform agnostic way.
+ */
+class ToolRunner extends events.EventEmitter {
+    constructor(toolPath, args, options) {
+        super();
+        if (!toolPath) {
+            throw new Error("Parameter 'toolPath' cannot be null or empty.");
+        }
+        this.toolPath = toolPath;
+        this.args = args || [];
+        this.options = options || {};
+    }
+    _debug(message) {
+        if (this.options.listeners && this.options.listeners.debug) {
+            this.options.listeners.debug(message);
+        }
+    }
+    _getCommandString(options, noPrefix) {
+        const toolPath = this._getSpawnFileName();
+        const args = this._getSpawnArgs(options);
+        let cmd = noPrefix ? '' : '[command]'; // omit prefix when piped to a second tool
+        if (IS_WINDOWS) {
+            // Windows + cmd file
+            if (this._isCmdFile()) {
+                cmd += toolPath;
+                for (const a of args) {
+                    cmd += ` ${a}`;
+                }
+            }
+            // Windows + verbatim
+            else if (options.windowsVerbatimArguments) {
+                cmd += `"${toolPath}"`;
+                for (const a of args) {
+                    cmd += ` ${a}`;
+                }
+            }
+            // Windows (regular)
+            else {
+                cmd += this._windowsQuoteCmdArg(toolPath);
+                for (const a of args) {
+                    cmd += ` ${this._windowsQuoteCmdArg(a)}`;
+                }
+            }
+        }
+        else {
+            // OSX/Linux - this can likely be improved with some form of quoting.
+            // creating processes on Unix is fundamentally different than Windows.
+            // on Unix, execvp() takes an arg array.
+            cmd += toolPath;
+            for (const a of args) {
+                cmd += ` ${a}`;
+            }
+        }
+        return cmd;
+    }
+    _processLineBuffer(data, strBuffer, onLine) {
+        try {
+            let s = strBuffer + data.toString();
+            let n = s.indexOf(os.EOL);
+            while (n > -1) {
+                const line = s.substring(0, n);
+                onLine(line);
+                // the rest of the string ...
+                s = s.substring(n + os.EOL.length);
+                n = s.indexOf(os.EOL);
+            }
+            strBuffer = s;
+        }
+        catch (err) {
+            // streaming lines to console is best effort.  Don't fail a build.
+            this._debug(`error processing line. Failed with error ${err}`);
+        }
+    }
+    _getSpawnFileName() {
+        if (IS_WINDOWS) {
+            if (this._isCmdFile()) {
+                return process.env['COMSPEC'] || 'cmd.exe';
+            }
+        }
+        return this.toolPath;
+    }
+    _getSpawnArgs(options) {
+        if (IS_WINDOWS) {
+            if (this._isCmdFile()) {
+                let argline = `/D /S /C "${this._windowsQuoteCmdArg(this.toolPath)}`;
+                for (const a of this.args) {
+                    argline += ' ';
+                    argline += options.windowsVerbatimArguments
+                        ? a
+                        : this._windowsQuoteCmdArg(a);
+                }
+                argline += '"';
+                return [argline];
+            }
+        }
+        return this.args;
+    }
+    _endsWith(str, end) {
+        return str.endsWith(end);
+    }
+    _isCmdFile() {
+        const upperToolPath = this.toolPath.toUpperCase();
+        return (this._endsWith(upperToolPath, '.CMD') ||
+            this._endsWith(upperToolPath, '.BAT'));
+    }
+    _windowsQuoteCmdArg(arg) {
+        // for .exe, apply the normal quoting rules that libuv applies
+        if (!this._isCmdFile()) {
+            return this._uvQuoteCmdArg(arg);
+        }
+        // otherwise apply quoting rules specific to the cmd.exe command line parser.
+        // the libuv rules are generic and are not designed specifically for cmd.exe
+        // command line parser.
+        //
+        // for a detailed description of the cmd.exe command line parser, refer to
+        // http://stackoverflow.com/questions/4094699/how-does-the-windows-command-interpreter-cmd-exe-parse-scripts/7970912#7970912
+        // need quotes for empty arg
+        if (!arg) {
+            return '""';
+        }
+        // determine whether the arg needs to be quoted
+        const cmdSpecialChars = [
+            ' ',
+            '\t',
+            '&',
+            '(',
+            ')',
+            '[',
+            ']',
+            '{',
+            '}',
+            '^',
+            '=',
+            ';',
+            '!',
+            "'",
+            '+',
+            ',',
+            '`',
+            '~',
+            '|',
+            '<',
+            '>',
+            '"'
+        ];
+        let needsQuotes = false;
+        for (const char of arg) {
+            if (cmdSpecialChars.some(x => x === char)) {
+                needsQuotes = true;
+                break;
+            }
+        }
+        // short-circuit if quotes not needed
+        if (!needsQuotes) {
+            return arg;
+        }
+        // the following quoting rules are very similar to the rules that by libuv applies.
+        //
+        // 1) wrap the string in quotes
+        //
+        // 2) double-up quotes - i.e. " => ""
+        //
+        //    this is different from the libuv quoting rules. libuv replaces " with \", which unfortunately
+        //    doesn't work well with a cmd.exe command line.
+        //
+        //    note, replacing " with "" also works well if the arg is passed to a downstream .NET console app.
+        //    for example, the command line:
+        //          foo.exe "myarg:""my val"""
+        //    is parsed by a .NET console app into an arg array:
+        //          [ "myarg:\"my val\"" ]
+        //    which is the same end result when applying libuv quoting rules. although the actual
+        //    command line from libuv quoting rules would look like:
+        //          foo.exe "myarg:\"my val\""
+        //
+        // 3) double-up slashes that precede a quote,
+        //    e.g.  hello \world    => "hello \world"
+        //          hello\"world    => "hello\\""world"
+        //          hello\\"world   => "hello\\\\""world"
+        //          hello world\    => "hello world\\"
+        //
+        //    technically this is not required for a cmd.exe command line, or the batch argument parser.
+        //    the reasons for including this as a .cmd quoting rule are:
+        //
+        //    a) this is optimized for the scenario where the argument is passed from the .cmd file to an
+        //       external program. many programs (e.g. .NET console apps) rely on the slash-doubling rule.
+        //
+        //    b) it's what we've been doing previously (by deferring to node default behavior) and we
+        //       haven't heard any complaints about that aspect.
+        //
+        // note, a weakness of the quoting rules chosen here, is that % is not escaped. in fact, % cannot be
+        // escaped when used on the command line directly - even though within a .cmd file % can be escaped
+        // by using %%.
+        //
+        // the saving grace is, on the command line, %var% is left as-is if var is not defined. this contrasts
+        // the line parsing rules within a .cmd file, where if var is not defined it is replaced with nothing.
+        //
+        // one option that was explored was replacing % with ^% - i.e. %var% => ^%var^%. this hack would
+        // often work, since it is unlikely that var^ would exist, and the ^ character is removed when the
+        // variable is used. the problem, however, is that ^ is not removed when %* is used to pass the args
+        // to an external program.
+        //
+        // an unexplored potential solution for the % escaping problem, is to create a wrapper .cmd file.
+        // % can be escaped within a .cmd file.
+        let reverse = '"';
+        let quoteHit = true;
+        for (let i = arg.length; i > 0; i--) {
+            // walk the string in reverse
+            reverse += arg[i - 1];
+            if (quoteHit && arg[i - 1] === '\\') {
+                reverse += '\\'; // double the slash
+            }
+            else if (arg[i - 1] === '"') {
+                quoteHit = true;
+                reverse += '"'; // double the quote
+            }
+            else {
+                quoteHit = false;
+            }
+        }
+        reverse += '"';
+        return reverse
+            .split('')
+            .reverse()
+            .join('');
+    }
+    _uvQuoteCmdArg(arg) {
+        // Tool runner wraps child_process.spawn() and needs to apply the same quoting as
+        // Node in certain cases where the undocumented spawn option windowsVerbatimArguments
+        // is used.
+        //
+        // Since this function is a port of quote_cmd_arg from Node 4.x (technically, lib UV,
+        // see https://github.com/nodejs/node/blob/v4.x/deps/uv/src/win/process.c for details),
+        // pasting copyright notice from Node within this function:
+        //
+        //      Copyright Joyent, Inc. and other Node contributors. All rights reserved.
+        //
+        //      Permission is hereby granted, free of charge, to any person obtaining a copy
+        //      of this software and associated documentation files (the "Software"), to
+        //      deal in the Software without restriction, including without limitation the
+        //      rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+        //      sell copies of the Software, and to permit persons to whom the Software is
+        //      furnished to do so, subject to the following conditions:
+        //
+        //      The above copyright notice and this permission notice shall be included in
+        //      all copies or substantial portions of the Software.
+        //
+        //      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        //      IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        //      FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        //      AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        //      LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+        //      FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+        //      IN THE SOFTWARE.
+        if (!arg) {
+            // Need double quotation for empty argument
+            return '""';
+        }
+        if (!arg.includes(' ') && !arg.includes('\t') && !arg.includes('"')) {
+            // No quotation needed
+            return arg;
+        }
+        if (!arg.includes('"') && !arg.includes('\\')) {
+            // No embedded double quotes or backslashes, so I can just wrap
+            // quote marks around the whole thing.
+            return `"${arg}"`;
+        }
+        // Expected input/output:
+        //   input : hello"world
+        //   output: "hello\"world"
+        //   input : hello""world
+        //   output: "hello\"\"world"
+        //   input : hello\world
+        //   output: hello\world
+        //   input : hello\\world
+        //   output: hello\\world
+        //   input : hello\"world
+        //   output: "hello\\\"world"
+        //   input : hello\\"world
+        //   output: "hello\\\\\"world"
+        //   input : hello world\
+        //   output: "hello world\\" - note the comment in libuv actually reads "hello world\"
+        //                             but it appears the comment is wrong, it should be "hello world\\"
+        let reverse = '"';
+        let quoteHit = true;
+        for (let i = arg.length; i > 0; i--) {
+            // walk the string in reverse
+            reverse += arg[i - 1];
+            if (quoteHit && arg[i - 1] === '\\') {
+                reverse += '\\';
+            }
+            else if (arg[i - 1] === '"') {
+                quoteHit = true;
+                reverse += '\\';
+            }
+            else {
+                quoteHit = false;
+            }
+        }
+        reverse += '"';
+        return reverse
+            .split('')
+            .reverse()
+            .join('');
+    }
+    _cloneExecOptions(options) {
+        options = options || {};
+        const result = {
+            cwd: options.cwd || process.cwd(),
+            env: options.env || process.env,
+            silent: options.silent || false,
+            windowsVerbatimArguments: options.windowsVerbatimArguments || false,
+            failOnStdErr: options.failOnStdErr || false,
+            ignoreReturnCode: options.ignoreReturnCode || false,
+            delay: options.delay || 10000
+        };
+        result.outStream = options.outStream || process.stdout;
+        result.errStream = options.errStream || process.stderr;
+        return result;
+    }
+    _getSpawnOptions(options, toolPath) {
+        options = options || {};
+        const result = {};
+        result.cwd = options.cwd;
+        result.env = options.env;
+        result['windowsVerbatimArguments'] =
+            options.windowsVerbatimArguments || this._isCmdFile();
+        if (options.windowsVerbatimArguments) {
+            result.argv0 = `"${toolPath}"`;
+        }
+        return result;
+    }
+    /**
+     * Exec a tool.
+     * Output will be streamed to the live console.
+     * Returns promise with return code
+     *
+     * @param     tool     path to tool to exec
+     * @param     options  optional exec options.  See ExecOptions
+     * @returns   number
+     */
+    exec() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // root the tool path if it is unrooted and contains relative pathing
+            if (!ioUtil.isRooted(this.toolPath) &&
+                (this.toolPath.includes('/') ||
+                    (IS_WINDOWS && this.toolPath.includes('\\')))) {
+                // prefer options.cwd if it is specified, however options.cwd may also need to be rooted
+                this.toolPath = path.resolve(process.cwd(), this.options.cwd || process.cwd(), this.toolPath);
+            }
+            // if the tool is only a file name, then resolve it from the PATH
+            // otherwise verify it exists (add extension on Windows if necessary)
+            this.toolPath = yield io.which(this.toolPath, true);
+            return new Promise((resolve, reject) => {
+                this._debug(`exec tool: ${this.toolPath}`);
+                this._debug('arguments:');
+                for (const arg of this.args) {
+                    this._debug(`   ${arg}`);
+                }
+                const optionsNonNull = this._cloneExecOptions(this.options);
+                if (!optionsNonNull.silent && optionsNonNull.outStream) {
+                    optionsNonNull.outStream.write(this._getCommandString(optionsNonNull) + os.EOL);
+                }
+                const state = new ExecState(optionsNonNull, this.toolPath);
+                state.on('debug', (message) => {
+                    this._debug(message);
+                });
+                const fileName = this._getSpawnFileName();
+                const cp = child.spawn(fileName, this._getSpawnArgs(optionsNonNull), this._getSpawnOptions(this.options, fileName));
+                const stdbuffer = '';
+                if (cp.stdout) {
+                    cp.stdout.on('data', (data) => {
+                        if (this.options.listeners && this.options.listeners.stdout) {
+                            this.options.listeners.stdout(data);
+                        }
+                        if (!optionsNonNull.silent && optionsNonNull.outStream) {
+                            optionsNonNull.outStream.write(data);
+                        }
+                        this._processLineBuffer(data, stdbuffer, (line) => {
+                            if (this.options.listeners && this.options.listeners.stdline) {
+                                this.options.listeners.stdline(line);
+                            }
+                        });
+                    });
+                }
+                const errbuffer = '';
+                if (cp.stderr) {
+                    cp.stderr.on('data', (data) => {
+                        state.processStderr = true;
+                        if (this.options.listeners && this.options.listeners.stderr) {
+                            this.options.listeners.stderr(data);
+                        }
+                        if (!optionsNonNull.silent &&
+                            optionsNonNull.errStream &&
+                            optionsNonNull.outStream) {
+                            const s = optionsNonNull.failOnStdErr
+                                ? optionsNonNull.errStream
+                                : optionsNonNull.outStream;
+                            s.write(data);
+                        }
+                        this._processLineBuffer(data, errbuffer, (line) => {
+                            if (this.options.listeners && this.options.listeners.errline) {
+                                this.options.listeners.errline(line);
+                            }
+                        });
+                    });
+                }
+                cp.on('error', (err) => {
+                    state.processError = err.message;
+                    state.processExited = true;
+                    state.processClosed = true;
+                    state.CheckComplete();
+                });
+                cp.on('exit', (code) => {
+                    state.processExitCode = code;
+                    state.processExited = true;
+                    this._debug(`Exit code ${code} received from tool '${this.toolPath}'`);
+                    state.CheckComplete();
+                });
+                cp.on('close', (code) => {
+                    state.processExitCode = code;
+                    state.processExited = true;
+                    state.processClosed = true;
+                    this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
+                    state.CheckComplete();
+                });
+                state.on('done', (error, exitCode) => {
+                    if (stdbuffer.length > 0) {
+                        this.emit('stdline', stdbuffer);
+                    }
+                    if (errbuffer.length > 0) {
+                        this.emit('errline', errbuffer);
+                    }
+                    cp.removeAllListeners();
+                    if (error) {
+                        reject(error);
+                    }
+                    else {
+                        resolve(exitCode);
+                    }
+                });
+                if (this.options.input) {
+                    if (!cp.stdin) {
+                        throw new Error('child process missing stdin');
+                    }
+                    cp.stdin.end(this.options.input);
+                }
+            });
+        });
+    }
+}
+exports.ToolRunner = ToolRunner;
+/**
+ * Convert an arg string to an array of args. Handles escaping
+ *
+ * @param    argString   string of arguments
+ * @returns  string[]    array of arguments
+ */
+function argStringToArray(argString) {
+    const args = [];
+    let inQuotes = false;
+    let escaped = false;
+    let arg = '';
+    function append(c) {
+        // we only escape double quotes.
+        if (escaped && c !== '"') {
+            arg += '\\';
+        }
+        arg += c;
+        escaped = false;
+    }
+    for (let i = 0; i < argString.length; i++) {
+        const c = argString.charAt(i);
+        if (c === '"') {
+            if (!escaped) {
+                inQuotes = !inQuotes;
+            }
+            else {
+                append(c);
+            }
+            continue;
+        }
+        if (c === '\\' && escaped) {
+            append(c);
+            continue;
+        }
+        if (c === '\\' && inQuotes) {
+            escaped = true;
+            continue;
+        }
+        if (c === ' ' && !inQuotes) {
+            if (arg.length > 0) {
+                args.push(arg);
+                arg = '';
+            }
+            continue;
+        }
+        append(c);
+    }
+    if (arg.length > 0) {
+        args.push(arg.trim());
+    }
+    return args;
+}
+exports.argStringToArray = argStringToArray;
+class ExecState extends events.EventEmitter {
+    constructor(options, toolPath) {
+        super();
+        this.processClosed = false; // tracks whether the process has exited and stdio is closed
+        this.processError = '';
+        this.processExitCode = 0;
+        this.processExited = false; // tracks whether the process has exited
+        this.processStderr = false; // tracks whether stderr was written to
+        this.delay = 10000; // 10 seconds
+        this.done = false;
+        this.timeout = null;
+        if (!toolPath) {
+            throw new Error('toolPath must not be empty');
+        }
+        this.options = options;
+        this.toolPath = toolPath;
+        if (options.delay) {
+            this.delay = options.delay;
+        }
+    }
+    CheckComplete() {
+        if (this.done) {
+            return;
+        }
+        if (this.processClosed) {
+            this._setResult();
+        }
+        else if (this.processExited) {
+            this.timeout = setTimeout(ExecState.HandleTimeout, this.delay, this);
+        }
+    }
+    _debug(message) {
+        this.emit('debug', message);
+    }
+    _setResult() {
+        // determine whether there is an error
+        let error;
+        if (this.processExited) {
+            if (this.processError) {
+                error = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
+            }
+            else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
+                error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+            }
+            else if (this.processStderr && this.options.failOnStdErr) {
+                error = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
+            }
+        }
+        // clear the timeout
+        if (this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
+        }
+        this.done = true;
+        this.emit('done', error, this.processExitCode);
+    }
+    static HandleTimeout(state) {
+        if (state.done) {
+            return;
+        }
+        if (!state.processClosed && state.processExited) {
+            const message = `The STDIO streams did not close within ${state.delay /
+                1000} seconds of the exit event from process '${state.toolPath}'. This may indicate a child process inherited the STDIO streams and has not yet exited.`;
+            state._debug(message);
+        }
+        state._setResult();
+    }
+}
+//# sourceMappingURL=toolrunner.js.map
 
 /***/ }),
 
-/***/ 781:
+/***/ 186:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const command_1 = __webpack_require__(351);
+const os = __importStar(__webpack_require__(87));
+const path = __importStar(__webpack_require__(622));
+/**
+ * The code to exit an action
+ */
+var ExitCode;
+(function (ExitCode) {
+    /**
+     * A code indicating that the action was successful
+     */
+    ExitCode[ExitCode["Success"] = 0] = "Success";
+    /**
+     * A code indicating that the action was a failure
+     */
+    ExitCode[ExitCode["Failure"] = 1] = "Failure";
+})(ExitCode = exports.ExitCode || (exports.ExitCode = {}));
+//-----------------------------------------------------------------------
+// Variables
+//-----------------------------------------------------------------------
+/**
+ * Sets env variable for this action and future actions in the job
+ * @param name the name of the variable to set
+ * @param val the value of the variable. Non-string values will be converted to a string via JSON.stringify
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function exportVariable(name, val) {
+    const convertedVal = command_1.toCommandValue(val);
+    process.env[name] = convertedVal;
+    command_1.issueCommand('set-env', { name }, convertedVal);
+}
+exports.exportVariable = exportVariable;
+/**
+ * Registers a secret which will get masked from logs
+ * @param secret value of the secret
+ */
+function setSecret(secret) {
+    command_1.issueCommand('add-mask', {}, secret);
+}
+exports.setSecret = setSecret;
+/**
+ * Prepends inputPath to the PATH (for this action and future actions)
+ * @param inputPath
+ */
+function addPath(inputPath) {
+    command_1.issueCommand('add-path', {}, inputPath);
+    process.env['PATH'] = `${inputPath}${path.delimiter}${process.env['PATH']}`;
+}
+exports.addPath = addPath;
+/**
+ * Gets the value of an input.  The value is also trimmed.
+ *
+ * @param     name     name of the input to get
+ * @param     options  optional. See InputOptions.
+ * @returns   string
+ */
+function getInput(name, options) {
+    const val = process.env[`INPUT_${name.replace(/ /g, '_').toUpperCase()}`] || '';
+    if (options && options.required && !val) {
+        throw new Error(`Input required and not supplied: ${name}`);
+    }
+    return val.trim();
+}
+exports.getInput = getInput;
+/**
+ * Sets the value of an output.
+ *
+ * @param     name     name of the output to set
+ * @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function setOutput(name, value) {
+    command_1.issueCommand('set-output', { name }, value);
+}
+exports.setOutput = setOutput;
+/**
+ * Enables or disables the echoing of commands into stdout for the rest of the step.
+ * Echoing is disabled by default if ACTIONS_STEP_DEBUG is not set.
+ *
+ */
+function setCommandEcho(enabled) {
+    command_1.issue('echo', enabled ? 'on' : 'off');
+}
+exports.setCommandEcho = setCommandEcho;
+//-----------------------------------------------------------------------
+// Results
+//-----------------------------------------------------------------------
+/**
+ * Sets the action status to failed.
+ * When the action exits it will be with an exit code of 1
+ * @param message add error issue message
+ */
+function setFailed(message) {
+    process.exitCode = ExitCode.Failure;
+    error(message);
+}
+exports.setFailed = setFailed;
+//-----------------------------------------------------------------------
+// Logging Commands
+//-----------------------------------------------------------------------
+/**
+ * Gets whether Actions Step Debug is on or not
+ */
+function isDebug() {
+    return process.env['RUNNER_DEBUG'] === '1';
+}
+exports.isDebug = isDebug;
+/**
+ * Writes debug message to user log
+ * @param message debug message
+ */
+function debug(message) {
+    command_1.issueCommand('debug', {}, message);
+}
+exports.debug = debug;
+/**
+ * Adds an error issue
+ * @param message error issue message. Errors will be converted to string via toString()
+ */
+function error(message) {
+    command_1.issue('error', message instanceof Error ? message.toString() : message);
+}
+exports.error = error;
+/**
+ * Adds an warning issue
+ * @param message warning issue message. Errors will be converted to string via toString()
+ */
+function warning(message) {
+    command_1.issue('warning', message instanceof Error ? message.toString() : message);
+}
+exports.warning = warning;
+/**
+ * Writes info to log with console.log.
+ * @param message info message
+ */
+function info(message) {
+    process.stdout.write(message + os.EOL);
+}
+exports.info = info;
+/**
+ * Begin an output group.
+ *
+ * Output until the next `groupEnd` will be foldable in this group
+ *
+ * @param name The name of the output group
+ */
+function startGroup(name) {
+    command_1.issue('group', name);
+}
+exports.startGroup = startGroup;
+/**
+ * End an output group.
+ */
+function endGroup() {
+    command_1.issue('endgroup');
+}
+exports.endGroup = endGroup;
+/**
+ * Wrap an asynchronous function call in a group.
+ *
+ * Returns the same type as the function itself.
+ *
+ * @param name The name of the group
+ * @param fn The function to wrap in the group
+ */
+function group(name, fn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        startGroup(name);
+        let result;
+        try {
+            result = yield fn();
+        }
+        finally {
+            endGroup();
+        }
+        return result;
+    });
+}
+exports.group = group;
+//-----------------------------------------------------------------------
+// Wrapper action state
+//-----------------------------------------------------------------------
+/**
+ * Saves state for current action, the state can only be retrieved by this action's post job execution.
+ *
+ * @param     name     name of the state to store
+ * @param     value    value to store. Non-string values will be converted to a string via JSON.stringify
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function saveState(name, value) {
+    command_1.issueCommand('save-state', { name }, value);
+}
+exports.saveState = saveState;
+/**
+ * Gets the value of an state set by this action's main execution.
+ *
+ * @param     name     name of the state to get
+ * @returns   string
+ */
+function getState(name) {
+    return process.env[`STATE_${name}`] || '';
+}
+exports.getState = getState;
+//# sourceMappingURL=core.js.map
+
+/***/ }),
+
+/***/ 351:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const os = __importStar(__webpack_require__(87));
+/**
+ * Commands
+ *
+ * Command Format:
+ *   ::name key=value,key=value::message
+ *
+ * Examples:
+ *   ::warning::This is the message
+ *   ::set-env name=MY_VAR::some value
+ */
+function issueCommand(command, properties, message) {
+    const cmd = new Command(command, properties, message);
+    process.stdout.write(cmd.toString() + os.EOL);
+}
+exports.issueCommand = issueCommand;
+function issue(name, message = '') {
+    issueCommand(name, {}, message);
+}
+exports.issue = issue;
+const CMD_STRING = '::';
+class Command {
+    constructor(command, properties, message) {
+        if (!command) {
+            command = 'missing.command';
+        }
+        this.command = command;
+        this.properties = properties;
+        this.message = message;
+    }
+    toString() {
+        let cmdStr = CMD_STRING + this.command;
+        if (this.properties && Object.keys(this.properties).length > 0) {
+            cmdStr += ' ';
+            let first = true;
+            for (const key in this.properties) {
+                if (this.properties.hasOwnProperty(key)) {
+                    const val = this.properties[key];
+                    if (val) {
+                        if (first) {
+                            first = false;
+                        }
+                        else {
+                            cmdStr += ',';
+                        }
+                        cmdStr += `${key}=${escapeProperty(val)}`;
+                    }
+                }
+            }
+        }
+        cmdStr += `${CMD_STRING}${escapeData(this.message)}`;
+        return cmdStr;
+    }
+}
+/**
+ * Sanitizes an input into a string so it can be passed into issueCommand safely
+ * @param input input to sanitize into a string
+ */
+function toCommandValue(input) {
+    if (input === null || input === undefined) {
+        return '';
+    }
+    else if (typeof input === 'string' || input instanceof String) {
+        return input;
+    }
+    return JSON.stringify(input);
+}
+exports.toCommandValue = toCommandValue;
+function escapeData(s) {
+    return toCommandValue(s)
+        .replace(/%/g, '%25')
+        .replace(/\r/g, '%0D')
+        .replace(/\n/g, '%0A');
+}
+function escapeProperty(s) {
+    return toCommandValue(s)
+        .replace(/%/g, '%25')
+        .replace(/\r/g, '%0D')
+        .replace(/\n/g, '%0A')
+        .replace(/:/g, '%3A')
+        .replace(/,/g, '%2C');
+}
+//# sourceMappingURL=command.js.map
+
+/***/ }),
+
+/***/ 357:
+/***/ (function(module) {
+
+module.exports = require("assert");
+
+/***/ }),
+
+/***/ 374:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.setConfig = void 0;
+const exec = __importStar(__webpack_require__(757));
+const git = (args = []) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield exec.exec(`git`, args, true).then(res => {
+        if (res.stderr != '' && !res.success) {
+            throw new Error(res.stderr);
+        }
+        return res.stdout.trim();
+    });
+});
+function setConfig(key, value) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield git(['config', key, value]);
+    });
+}
+exports.setConfig = setConfig;
+//# sourceMappingURL=git.js.map
+
+/***/ }),
+
+/***/ 436:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const childProcess = __webpack_require__(129);
+const path = __webpack_require__(622);
+const util_1 = __webpack_require__(669);
+const ioUtil = __webpack_require__(962);
+const exec = util_1.promisify(childProcess.exec);
+/**
+ * Copies a file or folder.
+ * Based off of shelljs - https://github.com/shelljs/shelljs/blob/9237f66c52e5daa40458f94f9565e18e8132f5a6/src/cp.js
+ *
+ * @param     source    source path
+ * @param     dest      destination path
+ * @param     options   optional. See CopyOptions.
+ */
+function cp(source, dest, options = {}) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { force, recursive } = readCopyOptions(options);
+        const destStat = (yield ioUtil.exists(dest)) ? yield ioUtil.stat(dest) : null;
+        // Dest is an existing file, but not forcing
+        if (destStat && destStat.isFile() && !force) {
+            return;
+        }
+        // If dest is an existing directory, should copy inside.
+        const newDest = destStat && destStat.isDirectory()
+            ? path.join(dest, path.basename(source))
+            : dest;
+        if (!(yield ioUtil.exists(source))) {
+            throw new Error(`no such file or directory: ${source}`);
+        }
+        const sourceStat = yield ioUtil.stat(source);
+        if (sourceStat.isDirectory()) {
+            if (!recursive) {
+                throw new Error(`Failed to copy. ${source} is a directory, but tried to copy without recursive flag.`);
+            }
+            else {
+                yield cpDirRecursive(source, newDest, 0, force);
+            }
+        }
+        else {
+            if (path.relative(source, newDest) === '') {
+                // a file cannot be copied to itself
+                throw new Error(`'${newDest}' and '${source}' are the same file`);
+            }
+            yield copyFile(source, newDest, force);
+        }
+    });
+}
+exports.cp = cp;
+/**
+ * Moves a path.
+ *
+ * @param     source    source path
+ * @param     dest      destination path
+ * @param     options   optional. See MoveOptions.
+ */
+function mv(source, dest, options = {}) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (yield ioUtil.exists(dest)) {
+            let destExists = true;
+            if (yield ioUtil.isDirectory(dest)) {
+                // If dest is directory copy src into dest
+                dest = path.join(dest, path.basename(source));
+                destExists = yield ioUtil.exists(dest);
+            }
+            if (destExists) {
+                if (options.force == null || options.force) {
+                    yield rmRF(dest);
+                }
+                else {
+                    throw new Error('Destination already exists');
+                }
+            }
+        }
+        yield mkdirP(path.dirname(dest));
+        yield ioUtil.rename(source, dest);
+    });
+}
+exports.mv = mv;
+/**
+ * Remove a path recursively with force
+ *
+ * @param inputPath path to remove
+ */
+function rmRF(inputPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (ioUtil.IS_WINDOWS) {
+            // Node doesn't provide a delete operation, only an unlink function. This means that if the file is being used by another
+            // program (e.g. antivirus), it won't be deleted. To address this, we shell out the work to rd/del.
+            try {
+                if (yield ioUtil.isDirectory(inputPath, true)) {
+                    yield exec(`rd /s /q "${inputPath}"`);
+                }
+                else {
+                    yield exec(`del /f /a "${inputPath}"`);
+                }
+            }
+            catch (err) {
+                // if you try to delete a file that doesn't exist, desired result is achieved
+                // other errors are valid
+                if (err.code !== 'ENOENT')
+                    throw err;
+            }
+            // Shelling out fails to remove a symlink folder with missing source, this unlink catches that
+            try {
+                yield ioUtil.unlink(inputPath);
+            }
+            catch (err) {
+                // if you try to delete a file that doesn't exist, desired result is achieved
+                // other errors are valid
+                if (err.code !== 'ENOENT')
+                    throw err;
+            }
+        }
+        else {
+            let isDir = false;
+            try {
+                isDir = yield ioUtil.isDirectory(inputPath);
+            }
+            catch (err) {
+                // if you try to delete a file that doesn't exist, desired result is achieved
+                // other errors are valid
+                if (err.code !== 'ENOENT')
+                    throw err;
+                return;
+            }
+            if (isDir) {
+                yield exec(`rm -rf "${inputPath}"`);
+            }
+            else {
+                yield ioUtil.unlink(inputPath);
+            }
+        }
+    });
+}
+exports.rmRF = rmRF;
+/**
+ * Make a directory.  Creates the full path with folders in between
+ * Will throw if it fails
+ *
+ * @param   fsPath        path to create
+ * @returns Promise<void>
+ */
+function mkdirP(fsPath) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield ioUtil.mkdirP(fsPath);
+    });
+}
+exports.mkdirP = mkdirP;
+/**
+ * Returns path of a tool had the tool actually been invoked.  Resolves via paths.
+ * If you check and the tool does not exist, it will throw.
+ *
+ * @param     tool              name of the tool
+ * @param     check             whether to check if tool exists
+ * @returns   Promise<string>   path to tool
+ */
+function which(tool, check) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!tool) {
+            throw new Error("parameter 'tool' is required");
+        }
+        // recursive when check=true
+        if (check) {
+            const result = yield which(tool, false);
+            if (!result) {
+                if (ioUtil.IS_WINDOWS) {
+                    throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`);
+                }
+                else {
+                    throw new Error(`Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`);
+                }
+            }
+        }
+        try {
+            // build the list of extensions to try
+            const extensions = [];
+            if (ioUtil.IS_WINDOWS && process.env.PATHEXT) {
+                for (const extension of process.env.PATHEXT.split(path.delimiter)) {
+                    if (extension) {
+                        extensions.push(extension);
+                    }
+                }
+            }
+            // if it's rooted, return it if exists. otherwise return empty.
+            if (ioUtil.isRooted(tool)) {
+                const filePath = yield ioUtil.tryGetExecutablePath(tool, extensions);
+                if (filePath) {
+                    return filePath;
+                }
+                return '';
+            }
+            // if any path separators, return empty
+            if (tool.includes('/') || (ioUtil.IS_WINDOWS && tool.includes('\\'))) {
+                return '';
+            }
+            // build the list of directories
+            //
+            // Note, technically "where" checks the current directory on Windows. From a toolkit perspective,
+            // it feels like we should not do this. Checking the current directory seems like more of a use
+            // case of a shell, and the which() function exposed by the toolkit should strive for consistency
+            // across platforms.
+            const directories = [];
+            if (process.env.PATH) {
+                for (const p of process.env.PATH.split(path.delimiter)) {
+                    if (p) {
+                        directories.push(p);
+                    }
+                }
+            }
+            // return the first match
+            for (const directory of directories) {
+                const filePath = yield ioUtil.tryGetExecutablePath(directory + path.sep + tool, extensions);
+                if (filePath) {
+                    return filePath;
+                }
+            }
+            return '';
+        }
+        catch (err) {
+            throw new Error(`which failed with message ${err.message}`);
+        }
+    });
+}
+exports.which = which;
+function readCopyOptions(options) {
+    const force = options.force == null ? true : options.force;
+    const recursive = Boolean(options.recursive);
+    return { force, recursive };
+}
+function cpDirRecursive(sourceDir, destDir, currentDepth, force) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Ensure there is not a run away recursive copy
+        if (currentDepth >= 255)
+            return;
+        currentDepth++;
+        yield mkdirP(destDir);
+        const files = yield ioUtil.readdir(sourceDir);
+        for (const fileName of files) {
+            const srcFile = `${sourceDir}/${fileName}`;
+            const destFile = `${destDir}/${fileName}`;
+            const srcFileStat = yield ioUtil.lstat(srcFile);
+            if (srcFileStat.isDirectory()) {
+                // Recurse
+                yield cpDirRecursive(srcFile, destFile, currentDepth, force);
+            }
+            else {
+                yield copyFile(srcFile, destFile, force);
+            }
+        }
+        // Change the mode for the newly created directory
+        yield ioUtil.chmod(destDir, (yield ioUtil.stat(sourceDir)).mode);
+    });
+}
+// Buffered file copy
+function copyFile(srcFile, destFile, force) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if ((yield ioUtil.lstat(srcFile)).isSymbolicLink()) {
+            // unlink/re-link it
+            try {
+                yield ioUtil.lstat(destFile);
+                yield ioUtil.unlink(destFile);
+            }
+            catch (e) {
+                // Try to override file permission
+                if (e.code === 'EPERM') {
+                    yield ioUtil.chmod(destFile, '0666');
+                    yield ioUtil.unlink(destFile);
+                }
+                // other errors = it doesn't exist, no work to do
+            }
+            // Copy over symlink
+            const symlinkFull = yield ioUtil.readlink(srcFile);
+            yield ioUtil.symlink(symlinkFull, destFile, ioUtil.IS_WINDOWS ? 'junction' : null);
+        }
+        else if (!(yield ioUtil.exists(destFile)) || force) {
+            yield ioUtil.copyFile(srcFile, destFile);
+        }
+    });
+}
+//# sourceMappingURL=io.js.map
+
+/***/ }),
+
+/***/ 514:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const tr = __importStar(__webpack_require__(159));
+/**
+ * Exec a command.
+ * Output will be streamed to the live console.
+ * Returns promise with return code
+ *
+ * @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
+ * @param     args               optional arguments for tool. Escaping is handled by the lib.
+ * @param     options            optional exec options.  See ExecOptions
+ * @returns   Promise<number>    exit code
+ */
+function exec(commandLine, args, options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const commandArgs = tr.argStringToArray(commandLine);
+        if (commandArgs.length === 0) {
+            throw new Error(`Parameter 'commandLine' cannot be null or empty.`);
+        }
+        // Path to tool to execute should be first arg
+        const toolPath = commandArgs[0];
+        args = commandArgs.slice(1).concat(args || []);
+        const runner = new tr.ToolRunner(toolPath, args, options);
+        return runner.exec();
+    });
+}
+exports.exec = exec;
+//# sourceMappingURL=exec.js.map
+
+/***/ }),
+
+/***/ 614:
+/***/ (function(module) {
+
+module.exports = require("events");
+
+/***/ }),
+
+/***/ 622:
+/***/ (function(module) {
+
+module.exports = require("path");
+
+/***/ }),
+
+/***/ 647:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+// From https://github.com/actions/checkout/blob/master/src/state-helper.ts
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.IsPost = void 0;
+const coreCommand = __importStar(__webpack_require__(351));
+/**
+ * Indicates whether the POST action is running
+ */
+exports.IsPost = !!process.env['STATE_isPost'];
+// Publish a variable so that when the POST action runs, it can determine it should run the cleanup logic.
+// This is necessary since we don't have a separate entry point.
+if (!exports.IsPost) {
+    coreCommand.issueCommand('save-state', { name: 'isPost' }, 'true');
+}
+//# sourceMappingURL=state-helper.js.map
+
+/***/ }),
+
+/***/ 666:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -45729,8 +46185,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isArmored = exports.generateKeyPair = exports.readPrivateKey = void 0;
-const openpgp = __importStar(__webpack_require__(724));
-const addressparser_1 = __importDefault(__webpack_require__(977));
+const openpgp = __importStar(__webpack_require__(144));
+const addressparser_1 = __importDefault(__webpack_require__(764));
 exports.readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const { keys: [privateKey], err: err } = yield openpgp.key.readArmored((yield exports.isArmored(key)) ? key : Buffer.from(key, 'base64').toString());
     if (err === null || err === void 0 ? void 0 : err.length) {
@@ -45768,7 +46224,21 @@ exports.isArmored = (text) => __awaiter(void 0, void 0, void 0, function* () {
 
 /***/ }),
 
-/***/ 807:
+/***/ 669:
+/***/ (function(module) {
+
+module.exports = require("util");
+
+/***/ }),
+
+/***/ 747:
+/***/ (function(module) {
+
+module.exports = require("fs");
+
+/***/ }),
+
+/***/ 757:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -45803,7 +46273,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.exec = void 0;
-const actionsExec = __importStar(__webpack_require__(986));
+const actionsExec = __importStar(__webpack_require__(514));
 exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
     let stdout = '';
     let stderr = '';
@@ -45830,7 +46300,7 @@ exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0,
 
 /***/ }),
 
-/***/ 977:
+/***/ 764:
 /***/ (function(module) {
 
 "use strict";
@@ -46129,7 +46599,7 @@ Tokenizer.prototype.checkChar = function (chr) {
 
 /***/ }),
 
-/***/ 986:
+/***/ 962:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
 "use strict";
@@ -46143,40 +46613,191 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-const tr = __importStar(__webpack_require__(9));
-/**
- * Exec a command.
- * Output will be streamed to the live console.
- * Returns promise with return code
- *
- * @param     commandLine        command to execute (can include additional args). Must be correctly escaped.
- * @param     args               optional arguments for tool. Escaping is handled by the lib.
- * @param     options            optional exec options.  See ExecOptions
- * @returns   Promise<number>    exit code
- */
-function exec(commandLine, args, options) {
+const assert_1 = __webpack_require__(357);
+const fs = __webpack_require__(747);
+const path = __webpack_require__(622);
+_a = fs.promises, exports.chmod = _a.chmod, exports.copyFile = _a.copyFile, exports.lstat = _a.lstat, exports.mkdir = _a.mkdir, exports.readdir = _a.readdir, exports.readlink = _a.readlink, exports.rename = _a.rename, exports.rmdir = _a.rmdir, exports.stat = _a.stat, exports.symlink = _a.symlink, exports.unlink = _a.unlink;
+exports.IS_WINDOWS = process.platform === 'win32';
+function exists(fsPath) {
     return __awaiter(this, void 0, void 0, function* () {
-        const commandArgs = tr.argStringToArray(commandLine);
-        if (commandArgs.length === 0) {
-            throw new Error(`Parameter 'commandLine' cannot be null or empty.`);
+        try {
+            yield exports.stat(fsPath);
         }
-        // Path to tool to execute should be first arg
-        const toolPath = commandArgs[0];
-        args = commandArgs.slice(1).concat(args || []);
-        const runner = new tr.ToolRunner(toolPath, args, options);
-        return runner.exec();
+        catch (err) {
+            if (err.code === 'ENOENT') {
+                return false;
+            }
+            throw err;
+        }
+        return true;
     });
 }
-exports.exec = exec;
-//# sourceMappingURL=exec.js.map
+exports.exists = exists;
+function isDirectory(fsPath, useStat = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const stats = useStat ? yield exports.stat(fsPath) : yield exports.lstat(fsPath);
+        return stats.isDirectory();
+    });
+}
+exports.isDirectory = isDirectory;
+/**
+ * On OSX/Linux, true if path starts with '/'. On Windows, true for paths like:
+ * \, \hello, \\hello\share, C:, and C:\hello (and corresponding alternate separator cases).
+ */
+function isRooted(p) {
+    p = normalizeSeparators(p);
+    if (!p) {
+        throw new Error('isRooted() parameter "p" cannot be empty');
+    }
+    if (exports.IS_WINDOWS) {
+        return (p.startsWith('\\') || /^[A-Z]:/i.test(p) // e.g. \ or \hello or \\hello
+        ); // e.g. C: or C:\hello
+    }
+    return p.startsWith('/');
+}
+exports.isRooted = isRooted;
+/**
+ * Recursively create a directory at `fsPath`.
+ *
+ * This implementation is optimistic, meaning it attempts to create the full
+ * path first, and backs up the path stack from there.
+ *
+ * @param fsPath The path to create
+ * @param maxDepth The maximum recursion depth
+ * @param depth The current recursion depth
+ */
+function mkdirP(fsPath, maxDepth = 1000, depth = 1) {
+    return __awaiter(this, void 0, void 0, function* () {
+        assert_1.ok(fsPath, 'a path argument must be provided');
+        fsPath = path.resolve(fsPath);
+        if (depth >= maxDepth)
+            return exports.mkdir(fsPath);
+        try {
+            yield exports.mkdir(fsPath);
+            return;
+        }
+        catch (err) {
+            switch (err.code) {
+                case 'ENOENT': {
+                    yield mkdirP(path.dirname(fsPath), maxDepth, depth + 1);
+                    yield exports.mkdir(fsPath);
+                    return;
+                }
+                default: {
+                    let stats;
+                    try {
+                        stats = yield exports.stat(fsPath);
+                    }
+                    catch (err2) {
+                        throw err;
+                    }
+                    if (!stats.isDirectory())
+                        throw err;
+                }
+            }
+        }
+    });
+}
+exports.mkdirP = mkdirP;
+/**
+ * Best effort attempt to determine whether a file exists and is executable.
+ * @param filePath    file path to check
+ * @param extensions  additional file extensions to try
+ * @return if file exists and is executable, returns the file path. otherwise empty string.
+ */
+function tryGetExecutablePath(filePath, extensions) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let stats = undefined;
+        try {
+            // test file exists
+            stats = yield exports.stat(filePath);
+        }
+        catch (err) {
+            if (err.code !== 'ENOENT') {
+                // eslint-disable-next-line no-console
+                console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+            }
+        }
+        if (stats && stats.isFile()) {
+            if (exports.IS_WINDOWS) {
+                // on Windows, test for valid extension
+                const upperExt = path.extname(filePath).toUpperCase();
+                if (extensions.some(validExt => validExt.toUpperCase() === upperExt)) {
+                    return filePath;
+                }
+            }
+            else {
+                if (isUnixExecutable(stats)) {
+                    return filePath;
+                }
+            }
+        }
+        // try each extension
+        const originalFilePath = filePath;
+        for (const extension of extensions) {
+            filePath = originalFilePath + extension;
+            stats = undefined;
+            try {
+                stats = yield exports.stat(filePath);
+            }
+            catch (err) {
+                if (err.code !== 'ENOENT') {
+                    // eslint-disable-next-line no-console
+                    console.log(`Unexpected error attempting to determine if executable file exists '${filePath}': ${err}`);
+                }
+            }
+            if (stats && stats.isFile()) {
+                if (exports.IS_WINDOWS) {
+                    // preserve the case of the actual file (since an extension was appended)
+                    try {
+                        const directory = path.dirname(filePath);
+                        const upperName = path.basename(filePath).toUpperCase();
+                        for (const actualName of yield exports.readdir(directory)) {
+                            if (upperName === actualName.toUpperCase()) {
+                                filePath = path.join(directory, actualName);
+                                break;
+                            }
+                        }
+                    }
+                    catch (err) {
+                        // eslint-disable-next-line no-console
+                        console.log(`Unexpected error attempting to determine the actual case of the file '${filePath}': ${err}`);
+                    }
+                    return filePath;
+                }
+                else {
+                    if (isUnixExecutable(stats)) {
+                        return filePath;
+                    }
+                }
+            }
+        }
+        return '';
+    });
+}
+exports.tryGetExecutablePath = tryGetExecutablePath;
+function normalizeSeparators(p) {
+    p = p || '';
+    if (exports.IS_WINDOWS) {
+        // convert slashes on Windows
+        p = p.replace(/\//g, '\\');
+        // remove redundant slashes
+        return p.replace(/\\\\+/g, '\\');
+    }
+    // remove redundant slashes
+    return p.replace(/\/\/+/g, '/');
+}
+// on Mac/Linux, test the execute bit
+//     R   W  X  R  W X R W X
+//   256 128 64 32 16 8 4 2 1
+function isUnixExecutable(stats) {
+    return ((stats.mode & 1) > 0 ||
+        ((stats.mode & 8) > 0 && stats.gid === process.getgid()) ||
+        ((stats.mode & 64) > 0 && stats.uid === process.getuid()));
+}
+//# sourceMappingURL=io-util.js.map
 
 /***/ })
 
