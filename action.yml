@@ -29,6 +29,9 @@ inputs:
   git_committer_email:
     description: 'Commit author''s email'
     required: false
+  workdir:
+    description: 'Working directory to run action in.'
+    required: false
 
 outputs:
   fingerprint:
