@@ -295,6 +295,11 @@ function run() {
             const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
             const git_committer_name = core.getInput('git_committer_name');
             const git_committer_email = core.getInput('git_committer_email');
+            const workdir = core.getInput('workdir') || '.';
+            if (workdir && workdir !== '.') {
+                core.info(`📂 Using ${workdir} as working directory...`);
+                process.chdir(workdir);
+            }
             core.info('📣 GnuPG info');
             const version = yield gpg.getVersion();
             const dirs = yield gpg.getDirs();

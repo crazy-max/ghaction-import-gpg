@@ -18,10 +18,10 @@ async function run(): Promise<void> {
     const git_committer_name: string = core.getInput('git_committer_name');
     const git_committer_email: string = core.getInput('git_committer_email');
     const workdir: string = core.getInput('workdir') || '.';
-    
+
     if (workdir && workdir !== '.') {
-        core.info(`📂 Using ${workdir} as working directory...`);
-        process.chdir(workdir);
+      core.info(`📂 Using ${workdir} as working directory...`);
+      process.chdir(workdir);
     }
 
     core.info('📣 GnuPG info');
