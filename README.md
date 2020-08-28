@@ -138,7 +138,7 @@ Following inputs can be used as `step.with` keys
 | `git_push_gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
 | `git_committer_name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
 | `git_committer_email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
-| `workdir`**¹**                        | String  | Working directory (below repository root) |
+| `workdir`                             | String  | Working directory (below repository root) |
 
 > **¹** `git_user_signingkey` needs to be enabled for these inputs to be used.
 
