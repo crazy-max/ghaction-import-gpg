@@ -38,7 +38,8 @@ ___
 
 ## Prerequisites
 
-First, export the GPG private key as an ASCII armored version to your clipboard:
+First, [generate a GPG key](https://docs.github.com/en/github/authenticating-to-github/generating-a-new-gpg-key) and
+export the GPG private key as an ASCII armored version to your clipboard:
 
 ```shell
 # macOS
