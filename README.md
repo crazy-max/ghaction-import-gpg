@@ -5,7 +5,7 @@
 [![Become a sponsor](https://img.shields.io/badge/sponsor-crazy--max-181717.svg?logo=github&style=flat-square)](https://github.com/sponsors/crazy-max)
 [![Paypal Donate](https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square)](https://www.paypal.me/crazyws)
 
-## About
+## About <!-- omit in toc -->
 
 GitHub Action to easily import a GPG key.
 
@@ -15,19 +15,18 @@ If you are interested, [check out](https://git.io/Je09Y) my other :octocat: GitH
 
 ___
 
-- [About](#about)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Usage](#usage)
-  - [Workflow](#workflow)
-  - [Sign commits](#sign-commits)
-- [Customizing](#customizing)
-  - [inputs](#inputs)
-  - [outputs](#outputs)
-  - [environment variables](#environment-variables)
-- [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
-- [How can I help?](#how-can-i-help)
-- [License](#license)
+* [Features](#features)
+* [Prerequisites](#prerequisites)
+* [Usage](#usage)
+  * [Workflow](#workflow)
+  * [Sign commits](#sign-commits)
+* [Customizing](#customizing)
+  * [inputs](#inputs)
+  * [outputs](#outputs)
+  * [environment variables](#environment-variables)
+* [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
+* [How can I help?](#how-can-i-help)
+* [License](#license)
 
 ## Features
 
