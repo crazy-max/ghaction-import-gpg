@@ -5,7 +5,7 @@
 [![Become a sponsor](https://img.shields.io/badge/sponsor-crazy--max-181717.svg?logo=github&style=flat-square)](https://github.com/sponsors/crazy-max)
 [![Paypal Donate](https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square)](https://www.paypal.me/crazyws)
 
-## About
+## About <!-- omit in toc -->
 
 GitHub Action to easily import a GPG key.
 
@@ -22,6 +22,7 @@ ___
   * [Sign commits](#sign-commits)
 * [Customizing](#customizing)
   * [inputs](#inputs)
+  * [outputs](#outputs)
   * [environment variables](#environment-variables)
 * [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
 * [How can I help?](#how-can-i-help)
@@ -137,6 +138,7 @@ Following inputs can be used as `step.with` keys
 | `git_push_gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
 | `git_committer_name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
 | `git_committer_email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
+| `workdir`                             | String  | Working directory (below repository root) |
 
 > **¹** `git_user_signingkey` needs to be enabled for these inputs to be used.
 
