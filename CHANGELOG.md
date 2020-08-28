@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.0 (2020/08/28)
+
+* Add `workdir` input (#55)
+* Update deps
+
 ## 2.1.1 (2020/05/18)
 
 * Fix importing of base64 armored string (#18)

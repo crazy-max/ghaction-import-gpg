@@ -5,7 +5,7 @@
 [![Become a sponsor](https://img.shields.io/badge/sponsor-crazy--max-181717.svg?logo=github&style=flat-square)](https://github.com/sponsors/crazy-max)
 [![Paypal Donate](https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square)](https://www.paypal.me/crazyws)
 
-## About <!-- omit in toc -->
+## About
 
 GitHub Action to easily import a GPG key.
 
@@ -138,7 +138,7 @@ Following inputs can be used as `step.with` keys
 | `git_push_gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
 | `git_committer_name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
 | `git_committer_email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
-| `workdir`                             | String  | Working directory (below repository root) |
+| `workdir`                             | String  | Working directory (below repository root) (default `.`) |
 
 > **¹** `git_user_signingkey` needs to be enabled for these inputs to be used.
 
@@ -150,7 +150,7 @@ Following outputs are available
 |---------------|---------|---------------------------------------|
 | `fingerprint` | String  | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html)) |
 | `keyid`       | String  | Low 64 bits of the X.509 certificate SHA-1 fingerprint |
-| `name`       | String  | Name associated with the GPG key       |
+| `name`        | String  | Name associated with the GPG key       |
 | `email`       | String  | Email address associated with the GPG key |
 
 ### environment variables
