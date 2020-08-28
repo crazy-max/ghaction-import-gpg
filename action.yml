@@ -29,6 +29,10 @@ inputs:
   git_committer_email:
     description: 'Commit author''s email'
     required: false
+  workdir:
+    description: 'Working directory (below repository root)'
+    default: '.'
+    required: false
 
 outputs:
   fingerprint:
