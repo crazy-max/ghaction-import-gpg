@@ -124,7 +124,6 @@ export const importKey = async (key: string): Promise<string> => {
     });
 };
 
-
 export const getKeygrips = async (fingerprint: string): Promise<Array<string>> => {
   return await exec.exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true).then(res => {
     if (res.stderr != '' && !res.success) {
