@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0 (2020/09/03)
+
+* Preset passphrase for all key keygrips (#57)
+* Update deps
+
 ## 2.2.0 (2020/08/28)
 
 * Add `workdir` input (#55)
