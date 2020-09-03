@@ -51,8 +51,6 @@ async function run(): Promise<void> {
       await gpg.configureAgent(gpg.agentConfig);
 
       core.info('📌 Getting keygrips');
-      const keygrips = await gpg.getKeygrips(privateKey.fingerprint);
-
       for (let keygrip of await gpg.getKeygrips(privateKey.fingerprint)) {
         core.info(`🔓 Presetting passphrase for ${keygrip}`);
         await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
