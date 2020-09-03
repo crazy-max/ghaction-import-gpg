@@ -18,7 +18,10 @@ const userInfo = {
   email: 'joe@foo.bar',
   keyID: 'D523BD50DD70B0BA',
   fingerprint: '27571A53B86AF0C799B38BA77D851EB72D73BDA0',
-  keygrip: '3E2D1142AA59E08E16B7E2C64BA6DDC773B1A627'
+  keygrips: [
+    '3E2D1142AA59E08E16B7E2C64BA6DDC773B1A627',
+    'BA83FC8947213477F28ADC019F6564A956456163',
+  ]
 };
 
 describe('gpg', () => {
@@ -58,12 +61,15 @@ describe('gpg', () => {
     });
   });
 
-  describe('getKeygrip', () => {
-    it('returns the keygrip', async () => {
+  describe('getKeygrips', () => {
+    it('returns the keygrips', async () => {
       await gpg.importKey(userInfo.pgp);
-      await gpg.getKeygrip(userInfo.fingerprint).then(keygrip => {
-        console.log(keygrip);
-        expect(keygrip).toEqual(userInfo.keygrip);
+      await gpg.getKeygrips(userInfo.fingerprint).then(keygrips => {
+        console.log(keygrips);
+        expect(keygrips.length).toEqual(userInfo.keygrips.length);
+        for (let i = 0; i < keygrips.length; i++) {
+          expect(keygrips[i]).toEqual(userInfo.keygrips[i]);
+        }
       });
     });
   });
@@ -77,12 +83,13 @@ describe('gpg', () => {
   describe('presetPassphrase', () => {
     it('presets passphrase', async () => {
       await gpg.importKey(userInfo.pgp);
-      const keygrip = await gpg.getKeygrip(userInfo.fingerprint);
       await gpg.configureAgent(gpg.agentConfig);
-      await gpg.presetPassphrase(keygrip, userInfo.passphrase).then(output => {
-        console.log(output);
-        expect(output).not.toEqual('');
-      });
+      for (let keygrip of await gpg.getKeygrips(userInfo.fingerprint)) {
+        await gpg.presetPassphrase(keygrip, userInfo.passphrase).then(output => {
+          console.log(output);
+          expect(output).not.toEqual('');
+        });
+      }
     });
   });
 

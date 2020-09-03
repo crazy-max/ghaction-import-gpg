@@ -50,14 +50,15 @@ async function run(): Promise<void> {
       core.info('⚙️ Configuring GnuPG agent');
       await gpg.configureAgent(gpg.agentConfig);
 
-      core.info('📌 Getting keygrip');
-      const keygrip = await gpg.getKeygrip(privateKey.fingerprint);
-      core.debug(`${keygrip}`);
+      core.info('📌 Getting keygrips');
+      const keygrips = await gpg.getKeygrips(privateKey.fingerprint);
 
-      core.info('🔓 Presetting passphrase');
-      await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
-        core.debug(stdout);
-      });
+      for (let keygrip of await gpg.getKeygrips(privateKey.fingerprint)) {
+        core.info(`🔓 Presetting passphrase for ${keygrip}`);
+        await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
+          core.debug(stdout);
+        });
+      }
     }
 
     core.info('🛒 Setting outputs...');
