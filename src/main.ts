@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import * as context from './context';
 import * as git from './git';
 import * as gpg from './gpg';
 import * as openpgp from './openpgp';
@@ -6,22 +7,12 @@ import * as stateHelper from './state-helper';
 
 async function run(): Promise<void> {
   try {
-    if (!process.env.GPG_PRIVATE_KEY) {
-      core.setFailed('GPG private key required');
-      return;
-    }
+    let inputs: context.Inputs = await context.getInputs();
+    stateHelper.setGpgPrivateKey(inputs.gpgPrivateKey);
 
-    const git_user_signingkey = /true/i.test(core.getInput('git_user_signingkey'));
-    const git_commit_gpgsign = /true/i.test(core.getInput('git_commit_gpgsign'));
-    const git_tag_gpgsign = /true/i.test(core.getInput('git_tag_gpgsign'));
-    const git_push_gpgsign = /true/i.test(core.getInput('git_push_gpgsign'));
-    const git_committer_name: string = core.getInput('git_committer_name');
-    const git_committer_email: string = core.getInput('git_committer_email');
-    const workdir: string = core.getInput('workdir') || '.';
-
-    if (workdir && workdir !== '.') {
-      core.info(`📂 Using ${workdir} as working directory...`);
-      process.chdir(workdir);
+    if (inputs.workdir && inputs.workdir !== '.') {
+      core.info(`📂 Using ${inputs.workdir} as working directory...`);
+      process.chdir(inputs.workdir);
     }
 
     core.info('📣 GnuPG info');
@@ -34,7 +25,7 @@ async function run(): Promise<void> {
     core.info(`Homedir    : ${dirs.homedir}`);
 
     core.info('🔮 Checking GPG private key');
-    const privateKey = await openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
+    const privateKey = await openpgp.readPrivateKey(inputs.gpgPrivateKey);
     core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
     core.debug(`KeyID        : ${privateKey.keyID}`);
     core.debug(`Name         : ${privateKey.name}`);
@@ -42,18 +33,18 @@ async function run(): Promise<void> {
     core.debug(`CreationTime : ${privateKey.creationTime}`);
 
     core.info('🔑 Importing GPG private key');
-    await gpg.importKey(process.env.GPG_PRIVATE_KEY).then(stdout => {
+    await gpg.importKey(inputs.gpgPrivateKey).then(stdout => {
       core.debug(stdout);
     });
 
-    if (process.env.PASSPHRASE) {
+    if (inputs.passphrase) {
       core.info('⚙️ Configuring GnuPG agent');
       await gpg.configureAgent(gpg.agentConfig);
 
       core.info('📌 Getting keygrips');
       for (let keygrip of await gpg.getKeygrips(privateKey.fingerprint)) {
         core.info(`🔓 Presetting passphrase for ${keygrip}`);
-        await gpg.presetPassphrase(keygrip, process.env.PASSPHRASE).then(stdout => {
+        await gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
           core.debug(stdout);
         });
       }
@@ -65,31 +56,31 @@ async function run(): Promise<void> {
     core.setOutput('name', privateKey.name);
     core.setOutput('email', privateKey.email);
 
-    if (git_user_signingkey) {
+    if (inputs.gitUserSigningkey) {
       core.info('🔐 Setting GPG signing keyID for this Git repository');
       await git.setConfig('user.signingkey', privateKey.keyID);
 
-      const user_email = git_committer_email || privateKey.email;
-      const user_name = git_committer_name || privateKey.name;
+      const userEmail = inputs.gitCommitterEmail || privateKey.email;
+      const userName = inputs.gitCommitterName || privateKey.name;
 
-      if (user_email != privateKey.email) {
+      if (userEmail != privateKey.email) {
         core.setFailed('Committer email does not match GPG key user address');
         return;
       }
 
-      core.info(`🔨 Configuring Git committer (${user_name} <${user_email}>)`);
-      await git.setConfig('user.name', user_name);
-      await git.setConfig('user.email', user_email);
+      core.info(`🔨 Configuring Git committer (${userName} <${userEmail}>)`);
+      await git.setConfig('user.name', userName);
+      await git.setConfig('user.email', userEmail);
 
-      if (git_commit_gpgsign) {
+      if (inputs.gitCommitGpgsign) {
         core.info('💎 Sign all commits automatically');
         await git.setConfig('commit.gpgsign', 'true');
       }
-      if (git_tag_gpgsign) {
+      if (inputs.gitTagGpgsign) {
         core.info('💎 Sign all tags automatically');
         await git.setConfig('tag.gpgsign', 'true');
       }
-      if (git_push_gpgsign) {
+      if (inputs.gitPushGpgsign) {
         core.info('💎 Sign all pushes automatically');
         await git.setConfig('push.gpgsign', 'true');
       }
@@ -100,13 +91,13 @@ async function run(): Promise<void> {
 }
 
 async function cleanup(): Promise<void> {
-  if (!process.env.GPG_PRIVATE_KEY) {
+  if (stateHelper.gpgPrivateKey.length <= 0) {
     core.debug('GPG private key is not defined. Skipping cleanup.');
     return;
   }
   try {
     core.info('🚿 Removing keys');
-    const privateKey = await openpgp.readPrivateKey(process.env.GPG_PRIVATE_KEY);
+    const privateKey = await openpgp.readPrivateKey(stateHelper.gpgPrivateKey);
     await gpg.deleteKey(privateKey.fingerprint);
 
     core.info('💀 Killing GnuPG agent');
@@ -116,11 +107,8 @@ async function cleanup(): Promise<void> {
   }
 }
 
-// Main
 if (!stateHelper.IsPost) {
   run();
-}
-// Post
-else {
+} else {
   cleanup();
 }

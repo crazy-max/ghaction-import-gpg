@@ -23,7 +23,6 @@ ___
 * [Customizing](#customizing)
   * [inputs](#inputs)
   * [outputs](#outputs)
-  * [environment variables](#environment-variables)
 * [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
 * [How can I help?](#how-can-i-help)
 * [License](#license)
@@ -78,10 +77,10 @@ jobs:
       -
         name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v2
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
       -
         name: GPG user IDs
         run: |
@@ -109,13 +108,12 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v2
+        uses: crazy-max/ghaction-import-gpg@v3
         with:
-          git_user_signingkey: true
-          git_commit_gpgsign: true
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          git-user-signingkey: true
+          git-commit-gpgsign: true
       -
         name: Sign commit and push changes
         run: |
@@ -131,17 +129,19 @@ jobs:
 
 Following inputs can be used as `step.with` keys
 
-| Name                                  | Type   | Description                                    |
+| Name                                  | Type    | Description                                    |
 |---------------------------------------|---------|------------------------------------------------|
-| `git_user_signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
-| `git_commit_gpgsign`**¹**             | Bool    | Sign all commits automatically. (default `false`) |
-| `git_tag_gpgsign`**¹**                | Bool    | Sign all tags automatically. (default `false`) |
-| `git_push_gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
-| `git_committer_name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
-| `git_committer_email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
+| `gpg-private-key`                     | String  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
+| `passphrase`                          | String  | Passphrase of the GPG private key |
+| `git-user-signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
+| `git-commit-gpgsign`**¹**             | Bool    | Sign all commits automatically. (default `false`) |
+| `git-tag-gpgsign`**¹**                | Bool    | Sign all tags automatically. (default `false`) |
+| `git-push-gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
+| `git-committer-name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
+| `git-committer-email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
 | `workdir`                             | String  | Working directory (below repository root) (default `.`) |
 
-> **¹** `git_user_signingkey` needs to be enabled for these inputs to be used.
+> **¹** `git-user-signingkey` needs to be enabled for these inputs to be used.
 
 ### outputs
 
@@ -153,15 +153,6 @@ Following outputs are available
 | `keyid`       | String  | Low 64 bits of the X.509 certificate SHA-1 fingerprint |
 | `name`        | String  | Name associated with the GPG key       |
 | `email`       | String  | Email address associated with the GPG key |
-
-### environment variables
-
-Following environment variables must be used as `step.env` keys
-
-| Name               | Description                           |
-|--------------------|---------------------------------------|
-| `GPG_PRIVATE_KEY`  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
-| `PASSPHRASE`       | Passphrase of the `GPG_PRIVATE_KEY` key if setted |
 
 ## Keep up-to-date with GitHub Dependabot
 

@@ -7,26 +7,32 @@ branding:
   icon: 'lock'
 
 inputs:
-  git_user_signingkey:
+  gpg-private-key:
+    description: 'GPG private key exported as an ASCII armored version or its base64 encoding'
+    required: true
+  passphrase:
+    description: 'Passphrase of the GPG private key'
+    required: false
+  git-user-signingkey:
     description: 'Set GPG signing keyID for this Git repository'
     default: 'false'
     required: false
-  git_commit_gpgsign:
-    description: 'Sign all commits automatically. git_user_signingkey needs to be enabled'
+  git-commit-gpgsign:
+    description: 'Sign all commits automatically. git-user-signingkey needs to be enabled'
     default: 'false'
     required: false
-  git_tag_gpgsign:
-    description: 'Sign all tags automatically. git_user_signingkey needs to be enabled'
+  git-tag-gpgsign:
+    description: 'Sign all tags automatically. git-user-signingkey needs to be enabled'
     default: 'false'
     required: false
-  git_push_gpgsign:
-    description: 'Sign all pushes automatically. git_user_signingkey needs to be enabled'
+  git-push-gpgsign:
+    description: 'Sign all pushes automatically. git-user-signingkey needs to be enabled'
     default: 'false'
     required: false
-  git_committer_name:
+  git-committer-name:
     description: 'Commit author''s name'
     required: false
-  git_committer_email:
+  git-committer-email:
     description: 'Commit author''s email'
     required: false
   workdir:
