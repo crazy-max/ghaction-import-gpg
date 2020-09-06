@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.0 (2020/09/06)
+
+* Move `GPG_PRIVATE_KEY` env var to `gpg-private-key` input
+* Move `PASSPHRASE` env var to `passphrase` input
+* Rename `git_user_signingkey` input to `git-user-signingkey`
+* Rename `git_commit_gpgsign` input to `git-commit-gpgsign`
+* Rename `git_tag_gpgsign` input to `git-tag-gpgsign`
+* Rename `git_push_gpgsign` input to `git-push-gpgsign`
+* Rename `git_committer_name` input to `git-committer-name`
+* Rename `git_committer_email` input to `git-committer-email`
+* Update deps
+
 ## 2.3.0 (2020/09/03)
 
 * Preset passphrase for all key keygrips (#57)
