@@ -48,7 +48,7 @@ gpg --armor --export-secret-key joe@foo.bar | pbcopy
 gpg --armor --export-secret-key joe@foo.bar -w0 | xclip
 
 # Arch
-gpg --armor --export-secret-key joe@foo.bar | sed -z 's;\n;;g' | xclip -selection clipboard -i
+gpg --armor --export-secret-key joe@foo.bar | xclip -selection clipboard -i
 
 # FreeBSD (assuming BSD base64)
 gpg --armor --export-secret-key joe@foo.bar | xclip
