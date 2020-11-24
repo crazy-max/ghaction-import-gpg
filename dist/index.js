@@ -94,7 +94,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exec = void 0;
 const actionsExec = __importStar(__webpack_require__(514));
-exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
+const exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
     let stdout = '';
     let stderr = '';
     const options = {
@@ -116,6 +116,7 @@ exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0,
         stderr: stderr.trim()
     };
 });
+exports.exec = exec;
 //# sourceMappingURL=exec.js.map
 
 /***/ }),
@@ -240,7 +241,7 @@ const gpgConnectAgent = (command) => __awaiter(void 0, void 0, void 0, function*
         return res.stdout.trim();
     });
 });
-exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
+const getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpg', ['--version'], true).then(res => {
         if (res.stderr != '') {
             throw new Error(res.stderr);
@@ -264,7 +265,8 @@ exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
         };
     });
 });
-exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
+exports.getVersion = getVersion;
+const getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpgconf', ['--list-dirs'], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
@@ -295,7 +297,8 @@ exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
         };
     });
 });
-exports.importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getDirs = getDirs;
+const importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const keyFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'ghaction-import-gpg-'));
     const keyPath = `${keyFolder}/key.pgp`;
     fs.writeFileSync(keyPath, (yield openpgp.isArmored(key)) ? key : Buffer.from(key, 'base64').toString(), { mode: 0o600 });
@@ -314,7 +317,8 @@ exports.importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
         fs.unlinkSync(keyPath);
     });
 });
-exports.getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
+exports.importKey = importKey;
+const getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
@@ -328,7 +332,8 @@ exports.getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, functio
         return keygrips;
     });
 });
-exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getKeygrips = getKeygrips;
+const configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
     const gpgAgentConf = path.join(yield getGnupgHome(), 'gpg-agent.conf');
     yield fs.writeFile(gpgAgentConf, config, function (err) {
         if (err)
@@ -336,12 +341,14 @@ exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function*
     });
     yield gpgConnectAgent('RELOADAGENT');
 });
-exports.presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, void 0, function* () {
+exports.configureAgent = configureAgent;
+const presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, void 0, function* () {
     const hexPassphrase = Buffer.from(passphrase, 'utf8').toString('hex').toUpperCase();
     yield gpgConnectAgent(`PRESET_PASSPHRASE ${keygrip} -1 ${hexPassphrase}`);
     return yield gpgConnectAgent(`KEYINFO ${keygrip}`);
 });
-exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
+exports.presetPassphrase = presetPassphrase;
+const deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
     yield exec.exec('gpg', ['--batch', '--yes', '--delete-secret-keys', fingerprint], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
@@ -353,9 +360,11 @@ exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function*
         }
     });
 });
-exports.killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
+exports.deleteKey = deleteKey;
+const killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
     yield gpgConnectAgent('KILLAGENT');
 });
+exports.killAgent = killAgent;
 //# sourceMappingURL=gpg.js.map
 
 /***/ }),
@@ -450,7 +459,7 @@ function run() {
                 const userEmail = inputs.gitCommitterEmail || privateKey.email;
                 const userName = inputs.gitCommitterName || privateKey.name;
                 if (userEmail != privateKey.email) {
-                    core.setFailed('Committer email does not match GPG key user address');
+                    core.setFailed(`Committer email "${inputs.gitCommitterEmail}" (name: "${inputs.gitCommitterName}") does not match GPG private key email "${privateKey.email}" (name: "${privateKey.name}")`);
                     return;
                 }
                 core.info(`🔨 Configuring Git committer (${userName} <${userEmail}>)`);
@@ -543,7 +552,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isArmored = exports.generateKeyPair = exports.readPrivateKey = void 0;
 const openpgp = __importStar(__webpack_require__(144));
 const addressparser_1 = __importDefault(__webpack_require__(764));
-exports.readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
+const readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const { keys: [privateKey], err: err } = yield openpgp.key.readArmored((yield exports.isArmored(key)) ? key : Buffer.from(key, 'base64').toString());
     if (err === null || err === void 0 ? void 0 : err.length) {
         throw err[0];
@@ -562,7 +571,8 @@ exports.readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* ()
         creationTime: privateKey.getCreationTime()
     };
 });
-exports.generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter(void 0, void 0, void 0, function* () {
+exports.readPrivateKey = readPrivateKey;
+const generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter(void 0, void 0, void 0, function* () {
     const keyPair = yield openpgp.generateKey({
         userIds: [{ name: name, email: email }],
         numBits,
@@ -573,9 +583,11 @@ exports.generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter
         privateKey: keyPair.privateKeyArmored.replace(/\r\n/g, '\n').trim()
     };
 });
-exports.isArmored = (text) => __awaiter(void 0, void 0, void 0, function* () {
+exports.generateKeyPair = generateKeyPair;
+const isArmored = (text) => __awaiter(void 0, void 0, void 0, function* () {
     return text.trimLeft().startsWith('---');
 });
+exports.isArmored = isArmored;
 //# sourceMappingURL=openpgp.js.map
 
 /***/ }),
