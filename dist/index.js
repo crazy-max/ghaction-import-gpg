@@ -48,7 +48,7 @@ function getInputs() {
             gitTagGpgsign: /true/i.test(core.getInput('git-tag-gpgsign')),
             gitPushGpgsign: /true/i.test(core.getInput('git-push-gpgsign')),
             gitCommitterName: core.getInput('git-committer-name'),
-            gitCommitterEmail: core.getInput('git-committer-name'),
+            gitCommitterEmail: core.getInput('git-committer-email'),
             workdir: core.getInput('workdir') || '.'
         };
     });
