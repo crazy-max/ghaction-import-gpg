@@ -64,7 +64,7 @@ async function run(): Promise<void> {
       const userName = inputs.gitCommitterName || privateKey.name;
 
       if (userEmail != privateKey.email) {
-        core.setFailed('Committer email does not match GPG key user address');
+        core.setFailed(`Committer email "${inputs.gitCommitterEmail}" (name: "${inputs.gitCommitterName}") does not match GPG private key email "${privateKey.email}" (name: "${privateKey.name}")`);
         return;
       }
 
