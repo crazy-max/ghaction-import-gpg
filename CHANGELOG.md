@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.0.2 (2020/11/24)
+
+* Fix git committer email action input (#67)
+
 ## 3.0.1 (2020/10/01)
 
 * Fix CVE-2020-15228
