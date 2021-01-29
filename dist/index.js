@@ -94,7 +94,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.exec = void 0;
 const actionsExec = __importStar(__webpack_require__(514));
-const exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
+exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
     let stdout = '';
     let stderr = '';
     const options = {
@@ -116,7 +116,6 @@ const exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, f
         stderr: stderr.trim()
     };
 });
-exports.exec = exec;
 //# sourceMappingURL=exec.js.map
 
 /***/ }),
@@ -241,7 +240,7 @@ const gpgConnectAgent = (command) => __awaiter(void 0, void 0, void 0, function*
         return res.stdout.trim();
     });
 });
-const getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
+exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpg', ['--version'], true).then(res => {
         if (res.stderr != '') {
             throw new Error(res.stderr);
@@ -265,8 +264,7 @@ const getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
         };
     });
 });
-exports.getVersion = getVersion;
-const getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
+exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpgconf', ['--list-dirs'], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
@@ -297,8 +295,7 @@ const getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
         };
     });
 });
-exports.getDirs = getDirs;
-const importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
+exports.importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const keyFolder = fs.mkdtempSync(path.join(os.tmpdir(), 'ghaction-import-gpg-'));
     const keyPath = `${keyFolder}/key.pgp`;
     fs.writeFileSync(keyPath, (yield openpgp.isArmored(key)) ? key : Buffer.from(key, 'base64').toString(), { mode: 0o600 });
@@ -317,8 +314,7 @@ const importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
         fs.unlinkSync(keyPath);
     });
 });
-exports.importKey = importKey;
-const getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
     return yield exec.exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
@@ -332,8 +328,7 @@ const getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, function*
         return keygrips;
     });
 });
-exports.getKeygrips = getKeygrips;
-const configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
+exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
     const gpgAgentConf = path.join(yield getGnupgHome(), 'gpg-agent.conf');
     yield fs.writeFile(gpgAgentConf, config, function (err) {
         if (err)
@@ -341,14 +336,12 @@ const configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* (
     });
     yield gpgConnectAgent('RELOADAGENT');
 });
-exports.configureAgent = configureAgent;
-const presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, void 0, function* () {
+exports.presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, void 0, function* () {
     const hexPassphrase = Buffer.from(passphrase, 'utf8').toString('hex').toUpperCase();
     yield gpgConnectAgent(`PRESET_PASSPHRASE ${keygrip} -1 ${hexPassphrase}`);
     return yield gpgConnectAgent(`KEYINFO ${keygrip}`);
 });
-exports.presetPassphrase = presetPassphrase;
-const deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
+exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
     yield exec.exec('gpg', ['--batch', '--yes', '--delete-secret-keys', fingerprint], true).then(res => {
         if (res.stderr != '' && !res.success) {
             throw new Error(res.stderr);
@@ -360,11 +353,9 @@ const deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* (
         }
     });
 });
-exports.deleteKey = deleteKey;
-const killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
+exports.killAgent = () => __awaiter(void 0, void 0, void 0, function* () {
     yield gpgConnectAgent('KILLAGENT');
 });
-exports.killAgent = killAgent;
 //# sourceMappingURL=gpg.js.map
 
 /***/ }),
@@ -552,7 +543,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isArmored = exports.generateKeyPair = exports.readPrivateKey = void 0;
 const openpgp = __importStar(__webpack_require__(144));
 const addressparser_1 = __importDefault(__webpack_require__(764));
-const readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
+exports.readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const { keys: [privateKey], err: err } = yield openpgp.key.readArmored((yield exports.isArmored(key)) ? key : Buffer.from(key, 'base64').toString());
     if (err === null || err === void 0 ? void 0 : err.length) {
         throw err[0];
@@ -571,8 +562,7 @@ const readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
         creationTime: privateKey.getCreationTime()
     };
 });
-exports.readPrivateKey = readPrivateKey;
-const generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter(void 0, void 0, void 0, function* () {
+exports.generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter(void 0, void 0, void 0, function* () {
     const keyPair = yield openpgp.generateKey({
         userIds: [{ name: name, email: email }],
         numBits,
@@ -583,11 +573,9 @@ const generateKeyPair = (name, email, passphrase, numBits = 4096) => __awaiter(v
         privateKey: keyPair.privateKeyArmored.replace(/\r\n/g, '\n').trim()
     };
 });
-exports.generateKeyPair = generateKeyPair;
-const isArmored = (text) => __awaiter(void 0, void 0, void 0, function* () {
+exports.isArmored = (text) => __awaiter(void 0, void 0, void 0, function* () {
     return text.trimLeft().startsWith('---');
 });
-exports.isArmored = isArmored;
 //# sourceMappingURL=openpgp.js.map
 
 /***/ }),
@@ -2484,7 +2472,7 @@ Tokenizer.prototype.checkChar = function (chr) {
 /***/ 144:
 /***/ ((module) => {
 
-/*! OpenPGP.js v4.10.8 - 2020-08-28 - this is LGPL licensed code, see LICENSE/our website https://openpgpjs.org/ for more information. */
+/*! OpenPGP.js v4.10.10 - 2021-01-24 - this is LGPL licensed code, see LICENSE/our website https://openpgpjs.org/ for more information. */
 (function(f){if(true){module.exports=f()}else { var g; }})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c=require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u=require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (global){
 "use strict";
@@ -26018,7 +26006,7 @@ function modL(r, x) {
     carry = 0;
     for (j = i - 32, k = i - 12; j < k; ++j) {
       x[j] += carry - 16 * x[i] * L[j - (i - 32)];
-      carry = (x[j] + 128) >> 8;
+      carry = Math.floor((x[j] + 128) / 256);
       x[j] -= carry * 256;
     }
     x[j] += carry;
@@ -26119,12 +26107,11 @@ function unpackneg(r, p) {
 }
 
 function crypto_sign_open(m, sm, n, pk) {
-  var i, mlen;
+  var i;
   var t = new Uint8Array(32), h;
   var p = [gf(), gf(), gf(), gf()],
       q = [gf(), gf(), gf(), gf()];
 
-  mlen = -1;
   if (n < 64) return -1;
 
   if (unpackneg(q, pk)) return -1;
@@ -26146,8 +26133,7 @@ function crypto_sign_open(m, sm, n, pk) {
   }
 
   for (i = 0; i < n; i++) m[i] = sm[i + 64];
-  mlen = n;
-  return mlen;
+  return n;
 }
 
 var crypto_scalarmult_BYTES = 32,
@@ -27546,7 +27532,7 @@ exports.default = {
    * @memberof module:config
    * @property {String} versionstring A version string to be included in armored messages
    */
-  versionstring: "OpenPGP.js v4.10.8",
+  versionstring: "OpenPGP.js v4.10.10",
   /**
    * @memberof module:config
    * @property {String} commentstring A comment string to be included in armored messages
@@ -29714,8 +29700,9 @@ exports.default = {
           const c2 = data_params[1].toBN();
           const p = key_params[0].toBN();
           const x = key_params[3].toBN();
-          const result = new _mpi2.default((await _public_key2.default.elgamal.decrypt(c1, c2, p, x)));
-          return _pkcs2.default.eme.decode(result.toString());
+          const result = new _mpi2.default((await _public_key2.default.elgamal.decrypt(c1, c2, p, x))); // MPI and BN.js discard any leading zeros
+          return _pkcs2.default.eme.decode(_util2.default.Uint8Array_to_str(result.toUint8Array('be', p.byteLength())) // re-introduce leading zeros
+          );
         }
       case _enums2.default.publicKey.ecdh:
         {
@@ -31239,10 +31226,6 @@ eme.encode = async function (M, k) {
  * @returns {String} message, an octet string
  */
 eme.decode = function (EM) {
-  // leading zeros truncated by bn.js
-  if (EM.charCodeAt(0) !== 0) {
-    EM = String.fromCharCode(0) + EM;
-  }
   const firstOct = EM.charCodeAt(0);
   const secondOct = EM.charCodeAt(1);
   let i = 2;
@@ -31609,8 +31592,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @module crypto/public_key/elgamal
  */
 
-const zero = new _bn2.default(0);
-
 exports.default = {
   /**
    * ElGamal Encryption function
@@ -31626,8 +31607,9 @@ exports.default = {
     const mred = m.toRed(redp);
     const gred = g.toRed(redp);
     const yred = y.toRed(redp);
-    // See Section 11.5 here: https://crypto.stanford.edu/~dabo/cryptobook/BonehShoup_0_4.pdf
-    const k = await _random2.default.getRandomBN(zero, p); // returns in [0, p-1]
+    // OpenPGP uses a "special" version of ElGamal where g is generator of the full group Z/pZ*
+    // hence g has order p-1, and to avoid that k = 0 mod p-1, we need to pick k in [1, p-2]
+    const k = await _random2.default.getRandomBN(new _bn2.default(1), p.subn(1));
     return {
       c1: gred.redPow(k).fromRed(),
       c2: yred.redPow(k).redMul(mred).fromRed()
@@ -34031,7 +34013,11 @@ exports.default = {
       });
       key = { key: pem, padding: nodeCrypto.constants.RSA_PKCS1_PADDING };
     }
-    return _util2.default.Uint8Array_to_str(nodeCrypto.privateDecrypt(key, data));
+    try {
+      return _util2.default.Uint8Array_to_str(nodeCrypto.privateDecrypt(key, data));
+    } catch (err) {
+      throw new Error('Decryption error');
+    }
   },
 
   bnDecrypt: async function bnDecrypt(data, n, e, d, p, q, u) {
@@ -34070,7 +34056,8 @@ exports.default = {
       result = result.redMul(unblinder);
     }
 
-    return _pkcs2.default.eme.decode(new _mpi2.default(result).toString());
+    result = new _mpi2.default(result).toUint8Array('be', n.byteLength()); // preserve leading zeros
+    return _pkcs2.default.eme.decode(_util2.default.Uint8Array_to_str(result));
   },
 
   prime: _prime2.default
@@ -35541,7 +35528,7 @@ function HKP(keyServerBaseUrl) {
 
 /**
  * Search for a public key on the key server either by key ID or part of the user ID.
- * @param  {String}   options.keyID   The long public key ID.
+ * @param  {String}   options.keyId   The long public key ID.
  * @param  {String}   options.query   This can be any part of the key user ID such as name
  *   or email address.
  * @returns {Promise<String>}          The ascii armored public key.
@@ -42690,11 +42677,14 @@ SecretKey.prototype.makeDummy = function () {
     throw new Error("Key is not decrypted");
   }
   this.clearPrivateParams();
+  this.keyMaterial = null;
   this.isEncrypted = false;
   this.s2k = new _s2k2.default();
   this.s2k.algorithm = 0;
   this.s2k.c = 0;
   this.s2k.type = 'gnu-dummy';
+  this.s2k_usage = 254;
+  this.symmetric = 'aes256';
 };
 
 /**
@@ -46609,7 +46599,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * @constructor
  */
 function WKD() {
-  this._fetch = typeof global !== 'undefined' ? global.fetch : require('node-fetch');
+  this._fetch = typeof global.fetch === 'function' ? global.fetch : require('node-fetch');
 }
 
 /**
