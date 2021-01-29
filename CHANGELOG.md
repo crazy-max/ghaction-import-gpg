@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.1.0 (2021/01/29)
+
+* Container based developer flow (#76)
+* Bump openpgp from 4.10.9 to 4.10.10 (#75)
+* Bump node-notifier from 8.0.0 to 8.0.1 (#72)
+* Bump openpgp from 4.10.8 to 4.10.9 (#69)
+
 ## 3.0.2 (2020/11/24)
 
 * Fix git committer email action input (#67)
