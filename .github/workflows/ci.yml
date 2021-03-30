@@ -7,9 +7,12 @@ on:
     branches:
       - 'master'
       - 'releases/v*'
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - 'master'
+      - 'releases/v*'
 
 jobs:
   armored:
