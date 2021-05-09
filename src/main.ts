@@ -51,10 +51,10 @@ async function run(): Promise<void> {
     }
 
     core.info('🛒 Setting outputs...');
-    core.setOutput('fingerprint', privateKey.fingerprint);
-    core.setOutput('keyid', privateKey.keyID);
-    core.setOutput('name', privateKey.name);
-    core.setOutput('email', privateKey.email);
+    context.setOutput('fingerprint', privateKey.fingerprint);
+    context.setOutput('keyid', privateKey.keyID);
+    context.setOutput('name', privateKey.name);
+    context.setOutput('email', privateKey.email);
 
     if (inputs.gitUserSigningkey) {
       core.info('🔐 Setting GPG signing keyID for this Git repository');

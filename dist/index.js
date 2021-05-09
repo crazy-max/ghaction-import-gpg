@@ -36,8 +36,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getInputs = void 0;
+exports.setOutput = exports.getInputs = void 0;
 const core = __importStar(__webpack_require__(186));
+const command_1 = __webpack_require__(351);
 function getInputs() {
     return __awaiter(this, void 0, void 0, function* () {
         return {
@@ -54,6 +55,11 @@ function getInputs() {
     });
 }
 exports.getInputs = getInputs;
+// FIXME: Temp fix https://github.com/actions/toolkit/issues/777
+function setOutput(name, value) {
+    command_1.issueCommand('set-output', { name }, value);
+}
+exports.setOutput = setOutput;
 //# sourceMappingURL=context.js.map
 
 /***/ }),
@@ -440,10 +446,10 @@ function run() {
                 }
             }
             core.info('🛒 Setting outputs...');
-            core.setOutput('fingerprint', privateKey.fingerprint);
-            core.setOutput('keyid', privateKey.keyID);
-            core.setOutput('name', privateKey.name);
-            core.setOutput('email', privateKey.email);
+            context.setOutput('fingerprint', privateKey.fingerprint);
+            context.setOutput('keyid', privateKey.keyID);
+            context.setOutput('name', privateKey.name);
+            context.setOutput('email', privateKey.email);
             if (inputs.gitUserSigningkey) {
                 core.info('🔐 Setting GPG signing keyID for this Git repository');
                 yield git.setConfig('user.signingkey', privateKey.keyID);
