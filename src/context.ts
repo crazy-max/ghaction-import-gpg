@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import {issueCommand} from '@actions/core/lib/command';
 
 export interface Inputs {
   gpgPrivateKey: string;
@@ -24,4 +25,9 @@ export async function getInputs(): Promise<Inputs> {
     gitCommitterEmail: core.getInput('git-committer-email'),
     workdir: core.getInput('workdir') || '.'
   };
+}
+
+// FIXME: Temp fix https://github.com/actions/toolkit/issues/777
+export function setOutput(name: string, value: any): void {
+  issueCommand('set-output', {name}, value);
 }
