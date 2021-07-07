@@ -23,7 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.7",
-    "@actions/exec": "^1.0.4",
+    "@actions/exec": "^1.1.0",
     "addressparser": "^1.0.1",
     "openpgp": "^4.10.10"
   },
