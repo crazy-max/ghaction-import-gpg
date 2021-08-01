@@ -23,8 +23,7 @@ ___
 * [Customizing](#customizing)
   * [inputs](#inputs)
   * [outputs](#outputs)
-* [Keep up-to-date with GitHub Dependabot](#keep-up-to-date-with-github-dependabot)
-* [How can I help?](#how-can-i-help)
+* [Contributing](#contributing)
 * [License](#license)
 
 ## Features
@@ -154,25 +153,13 @@ Following outputs are available
 | `name`        | String  | Name associated with the GPG key       |
 | `email`       | String  | Email address associated with the GPG key |
 
-## Keep up-to-date with GitHub Dependabot
+## Contributing
 
-Since [Dependabot](https://docs.github.com/en/github/administering-a-repository/keeping-your-actions-up-to-date-with-github-dependabot)
-has [native GitHub Actions support](https://docs.github.com/en/github/administering-a-repository/configuration-options-for-dependency-updates#package-ecosystem),
-to enable it on your GitHub repo all you need to do is add the `.github/dependabot.yml` file:
+Want to contribute? Awesome! The most basic way to show your support is to star the project, or to raise issues. If
+you want to open a pull request, please read the [contributing guidelines](.github/CONTRIBUTING.md).
 
-```yaml
-version: 2
-updates:
-  # Maintain dependencies for GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-```
-
-## How can I help?
-
-All kinds of contributions are welcome :raised_hands:! The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon: You can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max) :clap: or by making a [Paypal donation](https://www.paypal.me/crazyws) to ensure this journey continues indefinitely! :rocket:
+You can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max) or by
+making a [Paypal donation](https://www.paypal.me/crazyws) to ensure this journey continues indefinitely!
 
 Thanks again for your support, it is much appreciated! :pray:
 
