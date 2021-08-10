@@ -4,6 +4,7 @@ import {issueCommand} from '@actions/core/lib/command';
 export interface Inputs {
   gpgPrivateKey: string;
   passphrase: string;
+  gitConfigGlobal: boolean;
   gitUserSigningkey: boolean;
   gitCommitGpgsign: boolean;
   gitTagGpgsign: boolean;
@@ -17,6 +18,7 @@ export async function getInputs(): Promise<Inputs> {
   return {
     gpgPrivateKey: core.getInput('gpg-private-key', {required: true}),
     passphrase: core.getInput('passphrase'),
+    gitConfigGlobal: core.getBooleanInput('git-config-global'),
     gitUserSigningkey: core.getBooleanInput('git-user-signingkey'),
     gitCommitGpgsign: core.getBooleanInput('git-commit-gpgsign'),
     gitTagGpgsign: core.getBooleanInput('git-tag-gpgsign'),

@@ -14,6 +14,11 @@ const git = async (args: string[] = []): Promise<string> => {
     });
 };
 
-export async function setConfig(key: string, value: string): Promise<void> {
-  await git(['config', key, value]);
+export async function setConfig(key: string, value: string, global: boolean): Promise<void> {
+  let args: Array<string> = ['config'];
+  if (global) {
+    args.push('--global');
+  }
+  args.push(key, value);
+  await git(args);
 }
