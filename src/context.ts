@@ -7,7 +7,7 @@ export interface Inputs {
   gitUserSigningkey: boolean;
   gitCommitGpgsign: boolean;
   gitTagGpgsign: boolean;
-  gitPushGpgsign: boolean;
+  gitPushGpgsign: string;
   gitCommitterName: string;
   gitCommitterEmail: string;
   workdir: string;
@@ -20,7 +20,7 @@ export async function getInputs(): Promise<Inputs> {
     gitUserSigningkey: core.getBooleanInput('git-user-signingkey'),
     gitCommitGpgsign: core.getBooleanInput('git-commit-gpgsign'),
     gitTagGpgsign: core.getBooleanInput('git-tag-gpgsign'),
-    gitPushGpgsign: core.getBooleanInput('git-push-gpgsign'),
+    gitPushGpgsign: core.getInput('git-push-gpgsign') || 'if-asked',
     gitCommitterName: core.getInput('git-committer-name'),
     gitCommitterEmail: core.getInput('git-committer-email'),
     workdir: core.getInput('workdir') || '.'

@@ -47,7 +47,7 @@ function getInputs() {
             gitUserSigningkey: core.getBooleanInput('git-user-signingkey'),
             gitCommitGpgsign: core.getBooleanInput('git-commit-gpgsign'),
             gitTagGpgsign: core.getBooleanInput('git-tag-gpgsign'),
-            gitPushGpgsign: core.getBooleanInput('git-push-gpgsign'),
+            gitPushGpgsign: core.getInput('git-push-gpgsign') || 'if-asked',
             gitCommitterName: core.getInput('git-committer-name'),
             gitCommitterEmail: core.getInput('git-committer-email'),
             workdir: core.getInput('workdir') || '.'
@@ -415,35 +415,40 @@ function run() {
                 core.info(`📂 Using ${inputs.workdir} as working directory...`);
                 process.chdir(inputs.workdir);
             }
-            core.info('📣 GnuPG info');
             const version = yield gpg.getVersion();
             const dirs = yield gpg.getDirs();
-            core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
-            core.info(`Libdir     : ${dirs.libdir}`);
-            core.info(`Libexecdir : ${dirs.libexecdir}`);
-            core.info(`Datadir    : ${dirs.datadir}`);
-            core.info(`Homedir    : ${dirs.homedir}`);
-            core.info('🔮 Checking GPG private key');
+            yield core.group(`📣 GnuPG info`, () => __awaiter(this, void 0, void 0, function* () {
+                core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
+                core.info(`Libdir     : ${dirs.libdir}`);
+                core.info(`Libexecdir : ${dirs.libexecdir}`);
+                core.info(`Datadir    : ${dirs.datadir}`);
+                core.info(`Homedir    : ${dirs.homedir}`);
+            }));
             const privateKey = yield openpgp.readPrivateKey(inputs.gpgPrivateKey);
-            core.debug(`Fingerprint  : ${privateKey.fingerprint}`);
-            core.debug(`KeyID        : ${privateKey.keyID}`);
-            core.debug(`Name         : ${privateKey.name}`);
-            core.debug(`Email        : ${privateKey.email}`);
-            core.debug(`CreationTime : ${privateKey.creationTime}`);
-            core.info('🔑 Importing GPG private key');
-            yield gpg.importKey(inputs.gpgPrivateKey).then(stdout => {
-                core.debug(stdout);
-            });
+            yield core.group(`🔮 Checking GPG private key`, () => __awaiter(this, void 0, void 0, function* () {
+                core.info(`Fingerprint  : ${privateKey.fingerprint}`);
+                core.info(`KeyID        : ${privateKey.keyID}`);
+                core.info(`Name         : ${privateKey.name}`);
+                core.info(`Email        : ${privateKey.email}`);
+                core.info(`CreationTime : ${privateKey.creationTime}`);
+            }));
+            yield core.group(`🔑 Importing GPG private key`, () => __awaiter(this, void 0, void 0, function* () {
+                yield gpg.importKey(inputs.gpgPrivateKey).then(stdout => {
+                    core.info(stdout);
+                });
+            }));
             if (inputs.passphrase) {
                 core.info('⚙️ Configuring GnuPG agent');
                 yield gpg.configureAgent(gpg.agentConfig);
                 core.info('📌 Getting keygrips');
-                for (let keygrip of yield gpg.getKeygrips(privateKey.fingerprint)) {
-                    core.info(`🔓 Presetting passphrase for ${keygrip}`);
-                    yield gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
-                        core.debug(stdout);
-                    });
-                }
+                yield core.group(`📌 Getting keygrips`, () => __awaiter(this, void 0, void 0, function* () {
+                    for (let keygrip of yield gpg.getKeygrips(privateKey.fingerprint)) {
+                        core.info(`🔓 Presetting passphrase for ${keygrip}`);
+                        yield gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
+                            core.debug(stdout);
+                        });
+                    }
+                }));
             }
             core.info('🛒 Setting outputs...');
             context.setOutput('fingerprint', privateKey.fingerprint);
@@ -472,7 +477,7 @@ function run() {
                 }
                 if (inputs.gitPushGpgsign) {
                     core.info('💎 Sign all pushes automatically');
-                    yield git.setConfig('push.gpgsign', 'true');
+                    yield git.setConfig('push.gpgsign', inputs.gitPushGpgsign);
                 }
             }
         }
