@@ -27,7 +27,7 @@ inputs:
     required: false
   git-push-gpgsign:
     description: 'Sign all pushes automatically. git-user-signingkey needs to be enabled'
-    default: 'false'
+    default: 'if-asked'
     required: false
   git-committer-name:
     description: 'Commit author''s name'

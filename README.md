@@ -53,7 +53,8 @@ gpg --armor --export-secret-key joe@foo.bar | xclip -selection clipboard -i
 gpg --armor --export-secret-key joe@foo.bar | xclip
 ```
 
-Paste your clipboard as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets) named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
+Paste your clipboard as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
+named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
 
 ## Usage
 
@@ -135,7 +136,7 @@ Following inputs can be used as `step.with` keys
 | `git-user-signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
 | `git-commit-gpgsign`**¹**             | Bool    | Sign all commits automatically. (default `false`) |
 | `git-tag-gpgsign`**¹**                | Bool    | Sign all tags automatically. (default `false`) |
-| `git-push-gpgsign`**¹**               | Bool    | Sign all pushes automatically. (default `false`) |
+| `git-push-gpgsign`**¹**               | String  | Sign all pushes automatically. (default `if-asked`) |
 | `git-committer-name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
 | `git-committer-email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
 | `workdir`                             | String  | Working directory (below repository root) (default `.`) |
