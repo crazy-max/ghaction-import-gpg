@@ -133,6 +133,7 @@ Following inputs can be used as `step.with` keys
 |---------------------------------------|---------|------------------------------------------------|
 | `gpg-private-key`                     | String  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
 | `passphrase`                          | String  | Passphrase of the GPG private key |
+| `git-config-global`                   | Bool    | Set Git config global (default `false`) |
 | `git-user-signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
 | `git-commit-gpgsign`**¹**             | Bool    | Sign all commits automatically. (default `false`) |
 | `git-tag-gpgsign`**¹**                | Bool    | Sign all tags automatically. (default `false`) |

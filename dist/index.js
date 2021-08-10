@@ -44,6 +44,7 @@ function getInputs() {
         return {
             gpgPrivateKey: core.getInput('gpg-private-key', { required: true }),
             passphrase: core.getInput('passphrase'),
+            gitConfigGlobal: core.getBooleanInput('git-config-global'),
             gitUserSigningkey: core.getBooleanInput('git-user-signingkey'),
             gitCommitGpgsign: core.getBooleanInput('git-commit-gpgsign'),
             gitTagGpgsign: core.getBooleanInput('git-tag-gpgsign'),
@@ -113,9 +114,14 @@ const git = (args = []) => __awaiter(void 0, void 0, void 0, function* () {
         return res.stdout.trim();
     });
 });
-function setConfig(key, value) {
+function setConfig(key, value, global) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield git(['config', key, value]);
+        let args = ['config'];
+        if (global) {
+            args.push('--global');
+        }
+        args.push(key, value);
+        yield git(args);
     });
 }
 exports.setConfig = setConfig;
@@ -430,7 +436,7 @@ function run() {
             context.setOutput('email', privateKey.email);
             if (inputs.gitUserSigningkey) {
                 core.info('🔐 Setting GPG signing keyID for this Git repository');
-                yield git.setConfig('user.signingkey', privateKey.keyID);
+                yield git.setConfig('user.signingkey', privateKey.keyID, inputs.gitConfigGlobal);
                 const userEmail = inputs.gitCommitterEmail || privateKey.email;
                 const userName = inputs.gitCommitterName || privateKey.name;
                 if (userEmail != privateKey.email) {
@@ -438,19 +444,19 @@ function run() {
                     return;
                 }
                 core.info(`🔨 Configuring Git committer (${userName} <${userEmail}>)`);
-                yield git.setConfig('user.name', userName);
-                yield git.setConfig('user.email', userEmail);
+                yield git.setConfig('user.name', userName, inputs.gitConfigGlobal);
+                yield git.setConfig('user.email', userEmail, inputs.gitConfigGlobal);
                 if (inputs.gitCommitGpgsign) {
                     core.info('💎 Sign all commits automatically');
-                    yield git.setConfig('commit.gpgsign', 'true');
+                    yield git.setConfig('commit.gpgsign', 'true', inputs.gitConfigGlobal);
                 }
                 if (inputs.gitTagGpgsign) {
                     core.info('💎 Sign all tags automatically');
-                    yield git.setConfig('tag.gpgsign', 'true');
+                    yield git.setConfig('tag.gpgsign', 'true', inputs.gitConfigGlobal);
                 }
                 if (inputs.gitPushGpgsign) {
                     core.info('💎 Sign all pushes automatically');
-                    yield git.setConfig('push.gpgsign', inputs.gitPushGpgsign);
+                    yield git.setConfig('push.gpgsign', inputs.gitPushGpgsign, inputs.gitConfigGlobal);
                 }
             }
         }

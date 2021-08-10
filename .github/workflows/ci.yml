@@ -20,6 +20,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        global:
+          - false
+          - true
         os:
           - ubuntu-latest
           - macOS-latest
@@ -44,6 +47,7 @@ jobs:
         with:
           gpg-private-key: ${{ steps.test.outputs.pgp }}
           passphrase: ${{ steps.test.outputs.passphrase }}
+          git-config-global: ${{ matrix.global }}
           git-user-signingkey: true
           git-commit-gpgsign: true
           git-tag-gpgsign: true

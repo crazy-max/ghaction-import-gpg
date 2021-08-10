@@ -63,7 +63,7 @@ async function run(): Promise<void> {
 
     if (inputs.gitUserSigningkey) {
       core.info('🔐 Setting GPG signing keyID for this Git repository');
-      await git.setConfig('user.signingkey', privateKey.keyID);
+      await git.setConfig('user.signingkey', privateKey.keyID, inputs.gitConfigGlobal);
 
       const userEmail = inputs.gitCommitterEmail || privateKey.email;
       const userName = inputs.gitCommitterName || privateKey.name;
@@ -74,20 +74,20 @@ async function run(): Promise<void> {
       }
 
       core.info(`🔨 Configuring Git committer (${userName} <${userEmail}>)`);
-      await git.setConfig('user.name', userName);
-      await git.setConfig('user.email', userEmail);
+      await git.setConfig('user.name', userName, inputs.gitConfigGlobal);
+      await git.setConfig('user.email', userEmail, inputs.gitConfigGlobal);
 
       if (inputs.gitCommitGpgsign) {
         core.info('💎 Sign all commits automatically');
-        await git.setConfig('commit.gpgsign', 'true');
+        await git.setConfig('commit.gpgsign', 'true', inputs.gitConfigGlobal);
       }
       if (inputs.gitTagGpgsign) {
         core.info('💎 Sign all tags automatically');
-        await git.setConfig('tag.gpgsign', 'true');
+        await git.setConfig('tag.gpgsign', 'true', inputs.gitConfigGlobal);
       }
       if (inputs.gitPushGpgsign) {
         core.info('💎 Sign all pushes automatically');
-        await git.setConfig('push.gpgsign', inputs.gitPushGpgsign);
+        await git.setConfig('push.gpgsign', inputs.gitPushGpgsign, inputs.gitConfigGlobal);
       }
     }
   } catch (error) {
