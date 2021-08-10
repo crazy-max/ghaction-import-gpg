@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.2.0 (2021/08/10)
+
+* Add `git-config-global` input (#103)
+* Use built-in `getExecOutput` (#102)
+* Handle `if-asked` for `git-push-gpgsign` input (#100)
+* Use `getBooleanInput` (#101)
+* Bump @actions/core from 1.2.7 to 1.4.0 (#97)
+* Bump @actions/exec from 1.0.4 to 1.1.0 (#96)
+* Bump ws from 7.3.1 to 7.5.0 (#98)
+* Fix setOutput (#86)
+* Bump actions/github-script from v3 to v4.0.2 (#83)
+* Bump @actions/core from 1.2.6 to 1.2.7 (#81)
+* Bump hosted-git-info from 2.8.8 to 2.8.9 (#85)
+* Bump lodash from 4.17.20 to 4.17.21 (#84)
+* Bump y18n from 4.0.0 to 4.0.1 (#79)
+* Enhance workflow (#77)
+
 ## 3.1.0 (2021/01/29)
 
 * Container based developer flow (#76)
