@@ -64,68 +64,6 @@ exports.setOutput = setOutput;
 
 /***/ }),
 
-/***/ 757:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.exec = void 0;
-const actionsExec = __importStar(__webpack_require__(514));
-exports.exec = (command, args = [], silent) => __awaiter(void 0, void 0, void 0, function* () {
-    let stdout = '';
-    let stderr = '';
-    const options = {
-        silent: silent,
-        ignoreReturnCode: true
-    };
-    options.listeners = {
-        stdout: (data) => {
-            stdout += data.toString();
-        },
-        stderr: (data) => {
-            stderr += data.toString();
-        }
-    };
-    const returnCode = yield actionsExec.exec(command, args, options);
-    return {
-        success: returnCode === 0,
-        stdout: stdout.trim(),
-        stderr: stderr.trim()
-    };
-});
-//# sourceMappingURL=exec.js.map
-
-/***/ }),
-
 /***/ 374:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -161,10 +99,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.setConfig = void 0;
-const exec = __importStar(__webpack_require__(757));
+const exec = __importStar(__webpack_require__(514));
 const git = (args = []) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec.exec(`git`, args, true).then(res => {
-        if (res.stderr != '' && !res.success) {
+    return yield exec
+        .getExecOutput(`git`, args, {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
         return res.stdout.trim();
@@ -215,10 +158,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.killAgent = exports.deleteKey = exports.presetPassphrase = exports.configureAgent = exports.getKeygrips = exports.importKey = exports.getDirs = exports.getVersion = exports.agentConfig = void 0;
+const exec = __importStar(__webpack_require__(514));
 const fs = __importStar(__webpack_require__(747));
 const path = __importStar(__webpack_require__(622));
 const os = __importStar(__webpack_require__(87));
-const exec = __importStar(__webpack_require__(757));
 const openpgp = __importStar(__webpack_require__(666));
 exports.agentConfig = `default-cache-ttl 7200
 max-cache-ttl 31536000
@@ -234,8 +177,13 @@ const getGnupgHome = () => __awaiter(void 0, void 0, void 0, function* () {
     return homedir;
 });
 const gpgConnectAgent = (command) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec.exec(`gpg-connect-agent "${command}" /bye`, [], true).then(res => {
-        if (res.stderr != '' && !res.success) {
+    return yield exec
+        .getExecOutput(`gpg-connect-agent "${command}" /bye`, [], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
         for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
@@ -247,8 +195,13 @@ const gpgConnectAgent = (command) => __awaiter(void 0, void 0, void 0, function*
     });
 });
 exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec.exec('gpg', ['--version'], true).then(res => {
-        if (res.stderr != '') {
+    return yield exec
+        .getExecOutput('gpg', ['--version'], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
         let gnupgVersion = '';
@@ -271,8 +224,13 @@ exports.getVersion = () => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 exports.getDirs = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec.exec('gpgconf', ['--list-dirs'], true).then(res => {
-        if (res.stderr != '' && !res.success) {
+    return yield exec
+        .getExecOutput('gpgconf', ['--list-dirs'], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
         let libdir = '';
@@ -306,9 +264,12 @@ exports.importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     const keyPath = `${keyFolder}/key.pgp`;
     fs.writeFileSync(keyPath, (yield openpgp.isArmored(key)) ? key : Buffer.from(key, 'base64').toString(), { mode: 0o600 });
     return yield exec
-        .exec('gpg', ['--import', '--batch', '--yes', keyPath], true)
+        .getExecOutput('gpg', ['--import', '--batch', '--yes', keyPath], {
+        ignoreReturnCode: true,
+        silent: true
+    })
         .then(res => {
-        if (res.stderr != '' && !res.success) {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
         if (res.stderr != '') {
@@ -321,10 +282,12 @@ exports.importKey = (key) => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 exports.getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield exec.exec('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], true).then(res => {
-        if (res.stderr != '' && !res.success) {
-            throw new Error(res.stderr);
-        }
+    return yield exec
+        .getExecOutput('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
         let keygrips = [];
         for (let line of res.stdout.replace(/\r/g, '').trim().split(/\n/g)) {
             if (line.startsWith('grp')) {
@@ -348,13 +311,23 @@ exports.presetPassphrase = (keygrip, passphrase) => __awaiter(void 0, void 0, vo
     return yield gpgConnectAgent(`KEYINFO ${keygrip}`);
 });
 exports.deleteKey = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
-    yield exec.exec('gpg', ['--batch', '--yes', '--delete-secret-keys', fingerprint], true).then(res => {
-        if (res.stderr != '' && !res.success) {
+    yield exec
+        .getExecOutput('gpg', ['--batch', '--yes', '--delete-secret-keys', fingerprint], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
     });
-    yield exec.exec('gpg', ['--batch', '--yes', '--delete-keys', fingerprint], true).then(res => {
-        if (res.stderr != '' && !res.success) {
+    yield exec
+        .getExecOutput('gpg', ['--batch', '--yes', '--delete-keys', fingerprint], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        if (res.stderr.length > 0 && res.exitCode != 0) {
             throw new Error(res.stderr);
         }
     });
