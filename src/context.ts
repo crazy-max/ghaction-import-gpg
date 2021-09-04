@@ -16,15 +16,15 @@ export interface Inputs {
 
 export async function getInputs(): Promise<Inputs> {
   return {
-    gpgPrivateKey: core.getInput('gpg-private-key', {required: true}),
+    gpgPrivateKey: core.getInput('gpg_private_key', {required: true}),
     passphrase: core.getInput('passphrase'),
-    gitConfigGlobal: core.getBooleanInput('git-config-global'),
-    gitUserSigningkey: core.getBooleanInput('git-user-signingkey'),
-    gitCommitGpgsign: core.getBooleanInput('git-commit-gpgsign'),
-    gitTagGpgsign: core.getBooleanInput('git-tag-gpgsign'),
-    gitPushGpgsign: core.getInput('git-push-gpgsign') || 'if-asked',
-    gitCommitterName: core.getInput('git-committer-name'),
-    gitCommitterEmail: core.getInput('git-committer-email'),
+    gitConfigGlobal: core.getBooleanInput('git_config_global'),
+    gitUserSigningkey: core.getBooleanInput('git_user_signingkey'),
+    gitCommitGpgsign: core.getBooleanInput('git_commit_gpgsign'),
+    gitTagGpgsign: core.getBooleanInput('git_tag_gpgsign'),
+    gitPushGpgsign: core.getInput('git_push_gpgsign') || 'if-asked',
+    gitCommitterName: core.getInput('git_committer_name'),
+    gitCommitterEmail: core.getInput('git_committer_email'),
     workdir: core.getInput('workdir') || '.'
   };
 }
