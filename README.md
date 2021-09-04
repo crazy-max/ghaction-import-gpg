@@ -28,7 +28,7 @@ ___
 
 ## Features
 
-* Works on Linux, MacOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
+* Works on Linux, macOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
 * Purge imported GPG key, cache information and kill agent from runner
 * (Git) Enable signing for Git commits, tags and pushes
@@ -79,7 +79,7 @@ jobs:
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
         with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       -
         name: GPG user IDs
@@ -110,10 +110,10 @@ jobs:
         name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v3
         with:
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
-          git-user-signingkey: true
-          git-commit-gpgsign: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       -
         name: Sign commit and push changes
         run: |
@@ -131,18 +131,19 @@ Following inputs can be used as `step.with` keys
 
 | Name                                  | Type    | Description                                    |
 |---------------------------------------|---------|------------------------------------------------|
-| `gpg-private-key`                     | String  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
+| `gpg_private_key`                     | String  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
 | `passphrase`                          | String  | Passphrase of the GPG private key |
-| `git-config-global`                   | Bool    | Set Git config global (default `false`) |
-| `git-user-signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
-| `git-commit-gpgsign`**¹**             | Bool    | Sign all commits automatically. (default `false`) |
-| `git-tag-gpgsign`**¹**                | Bool    | Sign all tags automatically. (default `false`) |
-| `git-push-gpgsign`**¹**               | String  | Sign all pushes automatically. (default `if-asked`) |
-| `git-committer-name`**¹**             | String  | Set commit author's name (defaults to the name associated with the GPG key) |
-| `git-committer-email`**¹**            | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
+| `git_config_global`                   | Bool    | Set Git config global (default `false`) |
+| `git_user_signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
+| `git_commit_gpgsign`                  | Bool    | Sign all commits automatically. (default `false`) |
+| `git_tag_gpgsign`                     | Bool    | Sign all tags automatically. (default `false`) |
+| `git_push_gpgsign`                    | String  | Sign all pushes automatically. (default `if-asked`) |
+| `git_committer_name`                  | String  | Set commit author's name (defaults to the name associated with the GPG key) |
+| `git_committer_email`                 | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
 | `workdir`                             | String  | Working directory (below repository root) (default `.`) |
 
-> **¹** `git-user-signingkey` needs to be enabled for these inputs to be used.
+> `git_user_signingkey` needs to be enabled for `git_commit_gpgsign`, `git_tag_gpgsign`,
+> `git_push_gpgsign`, `git_committer_name`, `git_committer_email` inputs.
 
 ### outputs
 

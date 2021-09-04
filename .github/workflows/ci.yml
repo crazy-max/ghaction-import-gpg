@@ -45,13 +45,13 @@ jobs:
         id: import_gpg
         uses: ./
         with:
-          gpg-private-key: ${{ steps.test.outputs.pgp }}
+          gpg_private_key: ${{ steps.test.outputs.pgp }}
           passphrase: ${{ steps.test.outputs.passphrase }}
-          git-config-global: ${{ matrix.global }}
-          git-user-signingkey: true
-          git-commit-gpgsign: true
-          git-tag-gpgsign: true
-          git-push-gpgsign: if-asked
+          git_config_global: ${{ matrix.global }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
+          git_push_gpgsign: if-asked
       -
         name: GPG user IDs
         run: |
@@ -87,12 +87,12 @@ jobs:
         id: import_gpg
         uses: ./
         with:
-          gpg-private-key: ${{ steps.test.outputs.pgp-base64 }}
+          gpg_private_key: ${{ steps.test.outputs.pgp-base64 }}
           passphrase: ${{ steps.test.outputs.passphrase }}
-          git-user-signingkey: true
-          git-commit-gpgsign: true
-          git-tag-gpgsign: true
-          git-push-gpgsign: if-asked
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
+          git_push_gpgsign: if-asked
       -
         name: GPG user IDs
         run: |
