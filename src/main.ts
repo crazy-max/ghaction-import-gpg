@@ -17,7 +17,7 @@ async function run(): Promise<void> {
 
     const version = await gpg.getVersion();
     const dirs = await gpg.getDirs();
-    await core.group(`📣 GnuPG info`, async () => {
+    await core.group(`GnuPG info`, async () => {
       core.info(`Version    : ${version.gnupg} (libgcrypt ${version.libgcrypt})`);
       core.info(`Libdir     : ${dirs.libdir}`);
       core.info(`Libexecdir : ${dirs.libexecdir}`);
@@ -26,7 +26,7 @@ async function run(): Promise<void> {
     });
 
     const privateKey = await openpgp.readPrivateKey(inputs.gpgPrivateKey);
-    await core.group(`🔮 Checking GPG private key`, async () => {
+    await core.group(`GPG private key info`, async () => {
       core.info(`Fingerprint  : ${privateKey.fingerprint}`);
       core.info(`KeyID        : ${privateKey.keyID}`);
       core.info(`Name         : ${privateKey.name}`);
@@ -34,20 +34,19 @@ async function run(): Promise<void> {
       core.info(`CreationTime : ${privateKey.creationTime}`);
     });
 
-    await core.group(`🔑 Importing GPG private key`, async () => {
+    await core.group(`Importing GPG private key`, async () => {
       await gpg.importKey(inputs.gpgPrivateKey).then(stdout => {
         core.info(stdout);
       });
     });
 
     if (inputs.passphrase) {
-      core.info('⚙️ Configuring GnuPG agent');
+      core.info('Configuring GnuPG agent');
       await gpg.configureAgent(gpg.agentConfig);
 
-      core.info('📌 Getting keygrips');
-      await core.group(`📌 Getting keygrips`, async () => {
+      await core.group(`Getting keygrips`, async () => {
         for (let keygrip of await gpg.getKeygrips(privateKey.fingerprint)) {
-          core.info(`🔓 Presetting passphrase for ${keygrip}`);
+          core.info(`Presetting passphrase for ${keygrip}`);
           await gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
             core.debug(stdout);
           });
@@ -55,14 +54,14 @@ async function run(): Promise<void> {
       });
     }
 
-    core.info('🛒 Setting outputs...');
+    core.info('Setting outputs');
     context.setOutput('fingerprint', privateKey.fingerprint);
     context.setOutput('keyid', privateKey.keyID);
     context.setOutput('name', privateKey.name);
     context.setOutput('email', privateKey.email);
 
     if (inputs.gitUserSigningkey) {
-      core.info('🔐 Setting GPG signing keyID for this Git repository');
+      core.info('Setting GPG signing keyID for this Git repository');
       await git.setConfig('user.signingkey', privateKey.keyID, inputs.gitConfigGlobal);
 
       const userEmail = inputs.gitCommitterEmail || privateKey.email;
@@ -73,20 +72,20 @@ async function run(): Promise<void> {
         return;
       }
 
-      core.info(`🔨 Configuring Git committer (${userName} <${userEmail}>)`);
+      core.info(`Configuring Git committer (${userName} <${userEmail}>)`);
       await git.setConfig('user.name', userName, inputs.gitConfigGlobal);
       await git.setConfig('user.email', userEmail, inputs.gitConfigGlobal);
 
       if (inputs.gitCommitGpgsign) {
-        core.info('💎 Sign all commits automatically');
+        core.info('Sign all commits automatically');
         await git.setConfig('commit.gpgsign', 'true', inputs.gitConfigGlobal);
       }
       if (inputs.gitTagGpgsign) {
-        core.info('💎 Sign all tags automatically');
+        core.info('Sign all tags automatically');
         await git.setConfig('tag.gpgsign', 'true', inputs.gitConfigGlobal);
       }
       if (inputs.gitPushGpgsign) {
-        core.info('💎 Sign all pushes automatically');
+        core.info('Sign all pushes automatically');
         await git.setConfig('push.gpgsign', inputs.gitPushGpgsign, inputs.gitConfigGlobal);
       }
     }
@@ -101,11 +100,11 @@ async function cleanup(): Promise<void> {
     return;
   }
   try {
-    core.info('🚿 Removing keys');
+    core.info('Removing keys');
     const privateKey = await openpgp.readPrivateKey(stateHelper.gpgPrivateKey);
     await gpg.deleteKey(privateKey.fingerprint);
 
-    core.info('💀 Killing GnuPG agent');
+    core.info('Killing GnuPG agent');
     await gpg.killAgent();
   } catch (error) {
     core.warning(error.message);
