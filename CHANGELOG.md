@@ -1,5 +1,19 @@
 # Changelog
 
+## 4.0.0 (2021/09/05)
+
+* OpenPGP.js v5 (#78)
+* POSIX-compliant inputs names (#109)
+  * Rename `gpg-private-key` input `gpg_private_key`
+  * Rename `git-config-global` input `git_config_global`
+  * Rename `git-user-signingkey` input `git_user_signingkey`
+  * Rename `git-commit-gpgsign` input `git_commit_gpgsign`
+  * Rename `git-tag-gpgsign` input `git_tag_gpgsign`
+  * Rename `git-push-gpgsign` input `git_push_gpgsign`
+  * Rename `git-committer-name` input `git_committer_name`
+  * Rename `git-committer-email` input `git_committer_email`
+* Bump @actions/core from 1.4.0 to 1.5.0 (#106)
+
 ## 3.2.0 (2021/08/10)
 
 * Add `git-config-global` input (#103)

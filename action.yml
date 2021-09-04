@@ -22,15 +22,15 @@ inputs:
     default: 'false'
     required: false
   git_commit_gpgsign:
-    description: 'Sign all commits automatically. git_user_signingkey needs to be enabled'
+    description: 'Sign all commits automatically'
     default: 'false'
     required: false
   git_tag_gpgsign:
-    description: 'Sign all tags automatically. git_user_signingkey needs to be enabled'
+    description: 'Sign all tags automatically'
     default: 'false'
     required: false
   git_push_gpgsign:
-    description: 'Sign all pushes automatically. git_user_signingkey needs to be enabled'
+    description: 'Sign all pushes automatically'
     default: 'if-asked'
     required: false
   git_committer_name:
