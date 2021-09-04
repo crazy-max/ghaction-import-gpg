@@ -15,24 +15,19 @@ export interface KeyPair {
 }
 
 export const readPrivateKey = async (key: string): Promise<PrivateKey> => {
-  const {
-    keys: [privateKey],
-    err: err
-  } = await openpgp.key.readArmored((await isArmored(key)) ? key : Buffer.from(key, 'base64').toString());
-
-  if (err?.length) {
-    throw err[0];
-  }
+  const privateKey = await openpgp.readKey({
+    armoredKey: (await isArmored(key)) ? key : Buffer.from(key, 'base64').toString()
+  });
 
   const address = await privateKey.getPrimaryUser().then(primaryUser => {
-    return addressparser(primaryUser.user.userId.userid)[0];
+    return addressparser(primaryUser.user.userID?.userID)[0];
   });
 
   return {
     fingerprint: privateKey.getFingerprint().toUpperCase(),
     keyID: await privateKey.getEncryptionKey().then(encKey => {
       // @ts-ignore
-      return encKey?.getKeyId().toHex().toUpperCase();
+      return encKey?.getKeyID().toHex().toUpperCase();
     }),
     name: address.name,
     email: address.address,
@@ -40,16 +35,16 @@ export const readPrivateKey = async (key: string): Promise<PrivateKey> => {
   };
 };
 
-export const generateKeyPair = async (name: string, email: string, passphrase: string, numBits: number = 4096): Promise<KeyPair> => {
+export const generateKeyPair = async (name: string, email: string, passphrase: string, type?: 'ecc' | 'rsa'): Promise<KeyPair> => {
   const keyPair = await openpgp.generateKey({
-    userIds: [{name: name, email: email}],
-    numBits,
-    passphrase
+    userIDs: [{name: name, email: email}],
+    passphrase: passphrase,
+    type: type
   });
 
   return {
-    publicKey: keyPair.publicKeyArmored.replace(/\r\n/g, '\n').trim(),
-    privateKey: keyPair.privateKeyArmored.replace(/\r\n/g, '\n').trim()
+    publicKey: keyPair.publicKey.replace(/\r\n/g, '\n').trim(),
+    privateKey: keyPair.privateKey.replace(/\r\n/g, '\n').trim()
   };
 };
 
