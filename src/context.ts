@@ -12,6 +12,7 @@ export interface Inputs {
   gitCommitterName: string;
   gitCommitterEmail: string;
   workdir: string;
+  fingerprint: string;
 }
 
 export async function getInputs(): Promise<Inputs> {
@@ -25,7 +26,8 @@ export async function getInputs(): Promise<Inputs> {
     gitPushGpgsign: core.getInput('git_push_gpgsign') || 'if-asked',
     gitCommitterName: core.getInput('git_committer_name'),
     gitCommitterEmail: core.getInput('git_committer_email'),
-    workdir: core.getInput('workdir') || '.'
+    workdir: core.getInput('workdir') || '.',
+    fingerprint: core.getInput('fingerprint')
   };
 }
 

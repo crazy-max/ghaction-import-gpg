@@ -2,7 +2,7 @@ name: ci
 
 on:
   schedule:
-    - cron: '0 10 * * *' # everyday at 10am
+    - cron: '0 10 * * *'
   push:
     branches:
       - 'master'
@@ -20,6 +20,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        key:
+          - test-key
+          - test-subkey
         global:
           - false
           - true
@@ -27,10 +30,26 @@ jobs:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
+        include:
+          - key: test-subkey
+            fingerprint: C17D11ADF199F12A30A0910F1F80449BE0B08CB8
     steps:
       -
         name: Checkout
         uses: actions/checkout@v2
+      -
+        name: GPG conf
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const fs = require('fs');
+            const gnupgfolder = `${require('os').homedir()}/.gnupg`;
+            if (!fs.existsSync(gnupgfolder)){
+                fs.mkdirSync(gnupgfolder);
+            }
+            fs.copyFile('__tests__/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
+                if (err) throw err;
+            });
       -
         name: Get test key and passphrase
         uses: actions/github-script@v4
@@ -38,8 +57,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp', fs.readFileSync('.github/test-key.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('.github/test-key.pass', {encoding: 'utf8'}));
+            core.setOutput('pgp', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
         id: import_gpg
@@ -52,23 +71,28 @@ jobs:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
           git_push_gpgsign: if-asked
+          fingerprint: ${{ matrix.fingerprint }}
       -
-        name: GPG user IDs
+        name: List keys
         run: |
-          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
-          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
-          echo "name:        ${{ steps.import_gpg.outputs.name }}"
-          echo "email:       ${{ steps.import_gpg.outputs.email }}"
+          gpg -K
+        shell: bash
 
   base64:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        key:
+          - test-key
+          - test-subkey
         os:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
+        include:
+          - key: test-subkey
+            fingerprint: C17D11ADF199F12A30A0910F1F80449BE0B08CB8
     steps:
       -
         name: Checkout
@@ -80,8 +104,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp-base64', fs.readFileSync('.github/test-key-base64.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('.github/test-key.pass', {encoding: 'utf8'}));
+            core.setOutput('pgp-base64', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}-base64.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
         id: import_gpg
@@ -93,10 +117,4 @@ jobs:
           git_commit_gpgsign: true
           git_tag_gpgsign: true
           git_push_gpgsign: if-asked
-      -
-        name: GPG user IDs
-        run: |
-          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
-          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
-          echo "name:        ${{ steps.import_gpg.outputs.name }}"
-          echo "email:       ${{ steps.import_gpg.outputs.email }}"
+          fingerprint: ${{ matrix.fingerprint }}

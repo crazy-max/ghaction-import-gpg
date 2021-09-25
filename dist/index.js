@@ -51,7 +51,8 @@ function getInputs() {
             gitPushGpgsign: core.getInput('git_push_gpgsign') || 'if-asked',
             gitCommitterName: core.getInput('git_committer_name'),
             gitCommitterEmail: core.getInput('git_committer_email'),
-            workdir: core.getInput('workdir') || '.'
+            workdir: core.getInput('workdir') || '.',
+            fingerprint: core.getInput('fingerprint')
         };
     });
 }
@@ -389,7 +390,6 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             let inputs = yield context.getInputs();
-            stateHelper.setGpgPrivateKey(inputs.gpgPrivateKey);
             if (inputs.workdir && inputs.workdir !== '.') {
                 core.info(`📂 Using ${inputs.workdir} as working directory...`);
                 process.chdir(inputs.workdir);
@@ -411,6 +411,14 @@ function run() {
                 core.info(`Email        : ${privateKey.email}`);
                 core.info(`CreationTime : ${privateKey.creationTime}`);
             }));
+            let fingerprint = privateKey.fingerprint;
+            if (inputs.fingerprint) {
+                fingerprint = inputs.fingerprint;
+            }
+            stateHelper.setFingerprint(fingerprint);
+            yield core.group(`Fingerprint to use`, () => __awaiter(this, void 0, void 0, function* () {
+                core.info(fingerprint);
+            }));
             yield core.group(`Importing GPG private key`, () => __awaiter(this, void 0, void 0, function* () {
                 yield gpg.importKey(inputs.gpgPrivateKey).then(stdout => {
                     core.info(stdout);
@@ -420,7 +428,7 @@ function run() {
                 core.info('Configuring GnuPG agent');
                 yield gpg.configureAgent(gpg.agentConfig);
                 yield core.group(`Getting keygrips`, () => __awaiter(this, void 0, void 0, function* () {
-                    for (let keygrip of yield gpg.getKeygrips(privateKey.fingerprint)) {
+                    for (let keygrip of yield gpg.getKeygrips(fingerprint)) {
                         core.info(`Presetting passphrase for ${keygrip}`);
                         yield gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
                             core.debug(stdout);
@@ -428,11 +436,16 @@ function run() {
                     }
                 }));
             }
-            core.info('Setting outputs');
-            context.setOutput('fingerprint', privateKey.fingerprint);
-            context.setOutput('keyid', privateKey.keyID);
-            context.setOutput('name', privateKey.name);
-            context.setOutput('email', privateKey.email);
+            yield core.group(`Setting outputs`, () => __awaiter(this, void 0, void 0, function* () {
+                core.info(`fingerprint=${fingerprint}`);
+                context.setOutput('fingerprint', fingerprint);
+                core.info(`keyid=${privateKey.keyID}`);
+                context.setOutput('keyid', privateKey.keyID);
+                core.info(`name=${privateKey.name}`);
+                context.setOutput('name', privateKey.name);
+                core.info(`email=${privateKey.email}`);
+                context.setOutput('email', privateKey.email);
+            }));
             if (inputs.gitUserSigningkey) {
                 core.info('Setting GPG signing keyID for this Git repository');
                 yield git.setConfig('user.signingkey', privateKey.keyID, inputs.gitConfigGlobal);
@@ -466,14 +479,13 @@ function run() {
 }
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (stateHelper.gpgPrivateKey.length <= 0) {
-            core.debug('GPG private key is not defined. Skipping cleanup.');
+        if (stateHelper.fingerprint.length <= 0) {
+            core.debug('Fingerprint is not defined. Skipping cleanup.');
             return;
         }
         try {
             core.info('Removing keys');
-            const privateKey = yield openpgp.readPrivateKey(stateHelper.gpgPrivateKey);
-            yield gpg.deleteKey(privateKey.fingerprint);
+            yield gpg.deleteKey(stateHelper.fingerprint);
             core.info('Killing GnuPG agent');
             yield gpg.killAgent();
         }
@@ -542,10 +554,7 @@ exports.readPrivateKey = (key) => __awaiter(void 0, void 0, void 0, function* ()
     });
     return {
         fingerprint: privateKey.getFingerprint().toUpperCase(),
-        keyID: yield privateKey.getEncryptionKey().then(encKey => {
-            // @ts-ignore
-            return encKey === null || encKey === void 0 ? void 0 : encKey.getKeyID().toHex().toUpperCase();
-        }),
+        keyID: privateKey.getKeyID().toHex().toUpperCase(),
         name: address.name,
         email: address.address,
         creationTime: privateKey.getCreationTime()
@@ -594,14 +603,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setGpgPrivateKey = exports.gpgPrivateKey = exports.IsPost = void 0;
+exports.setFingerprint = exports.fingerprint = exports.IsPost = void 0;
 const core = __importStar(__webpack_require__(186));
 exports.IsPost = !!process.env['STATE_isPost'];
-exports.gpgPrivateKey = process.env['STATE_gpgPrivateKey'] || '';
-function setGpgPrivateKey(gpgPrivateKey) {
-    core.saveState('gpgPrivateKey', gpgPrivateKey);
+exports.fingerprint = process.env['STATE_fingerprint'] || '';
+function setFingerprint(fingerprint) {
+    core.saveState('fingerprint', fingerprint);
 }
-exports.setGpgPrivateKey = setGpgPrivateKey;
+exports.setFingerprint = setFingerprint;
 if (!exports.IsPost) {
     core.saveState('isPost', 'true');
 }
