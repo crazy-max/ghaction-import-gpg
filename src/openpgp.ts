@@ -25,10 +25,7 @@ export const readPrivateKey = async (key: string): Promise<PrivateKey> => {
 
   return {
     fingerprint: privateKey.getFingerprint().toUpperCase(),
-    keyID: await privateKey.getEncryptionKey().then(encKey => {
-      // @ts-ignore
-      return encKey?.getKeyID().toHex().toUpperCase();
-    }),
+    keyID: privateKey.getKeyID().toHex().toUpperCase(),
     name: address.name,
     email: address.address,
     creationTime: privateKey.getCreationTime()

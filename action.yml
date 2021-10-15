@@ -43,6 +43,9 @@ inputs:
     description: 'Working directory (below repository root)'
     default: '.'
     required: false
+  fingerprint:
+    description: 'Specific fingerprint to use (subkey)'
+    required: false
 
 outputs:
   fingerprint:

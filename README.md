@@ -141,6 +141,7 @@ Following inputs can be used as `step.with` keys
 | `git_committer_name`                  | String  | Set commit author's name (defaults to the name associated with the GPG key) |
 | `git_committer_email`                 | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
 | `workdir`                             | String  | Working directory (below repository root) (default `.`) |
+| `fingerprint`                         | String  | Specific fingerprint to use (subkey) |
 
 > `git_user_signingkey` needs to be enabled for `git_commit_gpgsign`, `git_tag_gpgsign`,
 > `git_push_gpgsign`, `git_committer_name`, `git_committer_email` inputs.

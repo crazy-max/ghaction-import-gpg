@@ -1,10 +1,10 @@
 import * as core from '@actions/core';
 
 export const IsPost = !!process.env['STATE_isPost'];
-export const gpgPrivateKey = process.env['STATE_gpgPrivateKey'] || '';
+export const fingerprint = process.env['STATE_fingerprint'] || '';
 
-export function setGpgPrivateKey(gpgPrivateKey: string) {
-  core.saveState('gpgPrivateKey', gpgPrivateKey);
+export function setFingerprint(fingerprint: string) {
+  core.saveState('fingerprint', fingerprint);
 }
 
 if (!IsPost) {
