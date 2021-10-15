@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.1.0 (2021/10/15)
+
+* Handle signing-only subkeys (#112)
+* Bump @actions/core from 1.5.0 to 1.6.0 (#114)
+* Bump actions/github-script from 4 to 5 (#113)
+* Bump ansi-regex from 5.0.0 to 5.0.1 (#111)
+* Bump tmpl from 1.0.4 to 1.0.5 (#110)
+
 ## 4.0.0 (2021/09/05)
 
 * OpenPGP.js v5 (#78)
