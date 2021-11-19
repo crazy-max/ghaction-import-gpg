@@ -10,7 +10,7 @@ async function run(): Promise<void> {
     let inputs: context.Inputs = await context.getInputs();
 
     if (inputs.workdir && inputs.workdir !== '.') {
-      core.info(`📂 Using ${inputs.workdir} as working directory...`);
+      core.info(`Using ${inputs.workdir} as working directory...`);
       process.chdir(inputs.workdir);
     }
 

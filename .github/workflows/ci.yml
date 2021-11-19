@@ -15,6 +15,14 @@ on:
       - 'releases/v*'
 
 jobs:
+  gpg:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: GPG conf
+        run: |
+          cat ~/.gnupg/gpg.conf || true
+
   armored:
     runs-on: ${{ matrix.os }}
     strategy:
