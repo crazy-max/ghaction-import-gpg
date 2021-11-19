@@ -391,7 +391,7 @@ function run() {
         try {
             let inputs = yield context.getInputs();
             if (inputs.workdir && inputs.workdir !== '.') {
-                core.info(`📂 Using ${inputs.workdir} as working directory...`);
+                core.info(`Using ${inputs.workdir} as working directory...`);
                 process.chdir(inputs.workdir);
             }
             const version = yield gpg.getVersion();
