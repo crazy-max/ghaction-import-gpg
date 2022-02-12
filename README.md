@@ -30,6 +30,7 @@ ___
 
 * Works on Linux, macOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
 * Allow to seed the internal cache of `gpg-agent` with provided passphrase
+* Signing-only subkeys support
 * Purge imported GPG key, cache information and kill agent from runner
 * (Git) Enable signing for Git commits, tags and pushes
 * (Git) Configure and check committer info against GPG key
@@ -82,12 +83,8 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       -
-        name: GPG user IDs
-        run: |
-          echo "fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
-          echo "keyid:       ${{ steps.import_gpg.outputs.keyid }}"
-          echo "name:        ${{ steps.import_gpg.outputs.name }}"
-          echo "email:       ${{ steps.import_gpg.outputs.email }}"
+        name: List keys
+        run: gpg -K
 ```
 
 ### Sign commits
