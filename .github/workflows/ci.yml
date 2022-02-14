@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: GPG conf
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
@@ -60,7 +60,7 @@ jobs:
             });
       -
         name: Get test key and passphrase
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         id: test
         with:
           script: |
@@ -107,7 +107,7 @@ jobs:
         uses: actions/checkout@v2
       -
         name: Get test key and passphrase
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         id: test
         with:
           script: |
