@@ -444,6 +444,7 @@ function run() {
                 fingerprint = inputs.fingerprint;
             }
             stateHelper.setFingerprint(fingerprint);
+            stateHelper.setKeyID(privateKey.keyID);
             yield core.group(`Fingerprint to use`, () => __awaiter(this, void 0, void 0, function* () {
                 core.info(fingerprint);
             }));
@@ -526,7 +527,7 @@ function cleanup() {
         }
         try {
             core.info('Removing keys');
-            yield gpg.deleteKey(stateHelper.fingerprint);
+            yield gpg.deleteKey(stateHelper.keyId);
             core.info('Killing GnuPG agent');
             yield gpg.killAgent();
         }
@@ -644,14 +645,19 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setFingerprint = exports.fingerprint = exports.IsPost = void 0;
+exports.setKeyID = exports.setFingerprint = exports.keyId = exports.fingerprint = exports.IsPost = void 0;
 const core = __importStar(__webpack_require__(2186));
 exports.IsPost = !!process.env['STATE_isPost'];
 exports.fingerprint = process.env['STATE_fingerprint'] || '';
+exports.keyId = process.env['STATE_keyId'] || '';
 function setFingerprint(fingerprint) {
     core.saveState('fingerprint', fingerprint);
 }
 exports.setFingerprint = setFingerprint;
+function setKeyID(keyID) {
+    core.saveState('keyId', keyID);
+}
+exports.setKeyID = setKeyID;
 if (!exports.IsPost) {
     core.saveState('isPost', 'true');
 }
