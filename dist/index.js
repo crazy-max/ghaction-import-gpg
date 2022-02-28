@@ -164,7 +164,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.killAgent = exports.deleteKey = exports.presetPassphrase = exports.configureAgent = exports.getKeygrips = exports.importKey = exports.getDirs = exports.getVersion = exports.agentConfig = void 0;
+exports.killAgent = exports.deleteKey = exports.presetPassphrase = exports.configureAgent = exports.getKeygrip = exports.parseKeygripFromGpgColonsOutput = exports.getKeygrips = exports.importKey = exports.getDirs = exports.getVersion = exports.agentConfig = void 0;
 const exec = __importStar(__webpack_require__(1514));
 const fs = __importStar(__webpack_require__(5747));
 const path = __importStar(__webpack_require__(5622));
@@ -304,6 +304,34 @@ exports.getKeygrips = (fingerprint) => __awaiter(void 0, void 0, void 0, functio
         return keygrips;
     });
 });
+exports.parseKeygripFromGpgColonsOutput = (output, fingerprint) => {
+    let keygrip = '';
+    let fingerPrintFound = false;
+    const lines = output.replace(/\r/g, '').trim().split(/\n/g);
+    for (let line of lines) {
+        if (line.startsWith(`fpr:`) && line.includes(`:${fingerprint}:`)) {
+            // We reach the record with the matching fingerprint.
+            // The next keygrip record is the keygrip for this fingerprint.
+            fingerPrintFound = true;
+            continue;
+        }
+        if (line.startsWith('grp:') && fingerPrintFound) {
+            keygrip = line.replace(/(grp|:)/g, '').trim();
+            break;
+        }
+    }
+    return keygrip;
+};
+exports.getKeygrip = (fingerprint) => __awaiter(void 0, void 0, void 0, function* () {
+    return yield exec
+        .getExecOutput('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], {
+        ignoreReturnCode: true,
+        silent: true
+    })
+        .then(res => {
+        return exports.parseKeygripFromGpgColonsOutput(res.stdout, fingerprint);
+    });
+});
 exports.configureAgent = (config) => __awaiter(void 0, void 0, void 0, function* () {
     const gpgAgentConf = path.join(yield getGnupgHome(), 'gpg-agent.conf');
     yield fs.writeFile(gpgAgentConf, config, function (err) {
@@ -424,7 +452,8 @@ function run() {
                     core.info(stdout);
                 });
             }));
-            if (inputs.passphrase) {
+            if (inputs.passphrase && !inputs.fingerprint) {
+                // Set the passphrase for all subkeys
                 core.info('Configuring GnuPG agent');
                 yield gpg.configureAgent(gpg.agentConfig);
                 yield core.group(`Getting keygrips`, () => __awaiter(this, void 0, void 0, function* () {
@@ -434,6 +463,18 @@ function run() {
                             core.debug(stdout);
                         });
                     }
+                }));
+            }
+            if (inputs.passphrase && inputs.fingerprint) {
+                // Set the passphrase only for the subkey specified in the input `fingerprint`
+                core.info('Configuring GnuPG agent');
+                yield gpg.configureAgent(gpg.agentConfig);
+                yield core.group(`Getting keygrip for fingerprint`, () => __awaiter(this, void 0, void 0, function* () {
+                    const keygrip = yield gpg.getKeygrip(fingerprint);
+                    core.info(`Presetting passphrase for key ${fingerprint} with keygrip ${keygrip}`);
+                    yield gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
+                        core.debug(stdout);
+                    });
                 }));
             }
             yield core.group(`Setting outputs`, () => __awaiter(this, void 0, void 0, function* () {
