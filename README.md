@@ -120,6 +120,51 @@ jobs:
           git push
 ```
 
+### Use a subkey
+
+With the input `fingerprint`, you can specify which one of the subkeys in a GPG key you want to use for signing.
+
+```yaml
+name: import-gpg
+
+on:
+  push:
+    branches: master
+
+jobs:
+  import-gpg:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          fingerprint: "C17D11ADF199F12A30A0910F1F80449BE0B08CB8"
+      -
+        name: List keys
+        run: gpg -K
+```
+
+For example, given this GPG key with a signing subkey:
+
+```s
+pub   ed25519 2021-09-24 [C]
+      87F257B89CE462100BEC0FFE6071D218380FDCC8
+      Keygrip = F5C3ABFAAB36B427FD98C4EDD0387E08EA1E8092
+uid           [ unknown] Joe Bar <joe@bar.foo>
+sub   ed25519 2021-09-24 [S]
+      C17D11ADF199F12A30A0910F1F80449BE0B08CB8
+      Keygrip = DEE0FC98F441519CA5DE5D79773CB29009695FEB
+```
+
+You can use the subkey with signing capability whose fingerprint is `C17D11ADF199F12A30A0910F1F80449BE0B08CB8`.
+
 ## Customizing
 
 ### inputs
