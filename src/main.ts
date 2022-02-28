@@ -38,6 +38,7 @@ async function run(): Promise<void> {
       fingerprint = inputs.fingerprint;
     }
     stateHelper.setFingerprint(fingerprint);
+    stateHelper.setKeyID(privateKey.keyID);
     await core.group(`Fingerprint to use`, async () => {
       core.info(fingerprint);
     });
@@ -131,7 +132,7 @@ async function cleanup(): Promise<void> {
   }
   try {
     core.info('Removing keys');
-    await gpg.deleteKey(stateHelper.fingerprint);
+    await gpg.deleteKey(stateHelper.keyId);
 
     core.info('Killing GnuPG agent');
     await gpg.killAgent();
