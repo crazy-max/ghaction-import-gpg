@@ -159,6 +159,39 @@ export const getKeygrips = async (fingerprint: string): Promise<Array<string>> =
     });
 };
 
+export const parseKeygripFromGpgColonsOutput = (output: string, fingerprint: string): string => {
+  let keygrip = '';
+  let fingerPrintFound = false;
+  const lines = output.replace(/\r/g, '').trim().split(/\n/g);
+
+  for (let line of lines) {
+    if (line.startsWith(`fpr:`) && line.includes(`:${fingerprint}:`)) {
+      // We reach the record with the matching fingerprint.
+      // The next keygrip record is the keygrip for this fingerprint.
+      fingerPrintFound = true;
+      continue;
+    }
+
+    if (line.startsWith('grp:') && fingerPrintFound) {
+      keygrip = line.replace(/(grp|:)/g, '').trim();
+      break;
+    }
+  }
+
+  return keygrip;
+};
+
+export const getKeygrip = async (fingerprint: string): Promise<string> => {
+  return await exec
+    .getExecOutput('gpg', ['--batch', '--with-colons', '--with-keygrip', '--list-secret-keys', fingerprint], {
+      ignoreReturnCode: true,
+      silent: true
+    })
+    .then(res => {
+      return parseKeygripFromGpgColonsOutput(res.stdout, fingerprint);
+    });
+};
+
 export const configureAgent = async (config: string): Promise<void> => {
   const gpgAgentConf = path.join(await getGnupgHome(), 'gpg-agent.conf');
   await fs.writeFile(gpgAgentConf, config, function (err) {
