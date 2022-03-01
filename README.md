@@ -20,6 +20,7 @@ ___
 * [Usage](#usage)
   * [Workflow](#workflow)
   * [Sign commits](#sign-commits)
+  * [Use a subkey](#use-a-subkey)
 * [Customizing](#customizing)
   * [inputs](#inputs)
   * [outputs](#outputs)
