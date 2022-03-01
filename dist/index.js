@@ -170,7 +170,7 @@ const fs = __importStar(__webpack_require__(5747));
 const path = __importStar(__webpack_require__(5622));
 const os = __importStar(__webpack_require__(2087));
 const openpgp = __importStar(__webpack_require__(4666));
-exports.agentConfig = `default-cache-ttl 7200
+exports.agentConfig = `default-cache-ttl 21600
 max-cache-ttl 31536000
 allow-preset-passphrase`;
 const getGnupgHome = () => __awaiter(void 0, void 0, void 0, function* () {

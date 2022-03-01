@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as os from 'os';
 import * as openpgp from './openpgp';
 
-export const agentConfig = `default-cache-ttl 7200
+export const agentConfig = `default-cache-ttl 21600
 max-cache-ttl 31536000
 allow-preset-passphrase`;
 
