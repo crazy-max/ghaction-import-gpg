@@ -1,5 +1,13 @@
 # Changelog
 
+## 4.2.0 (2022/03/01)
+
+* Align default ttl with GitHub job run timeout (#126)
+* Delete key using primary key ID not subkey ID (#125)
+* Set passphrase only for the fingerprint being used (#123)
+* Bump openpgp from 5.0.0 to 5.1.0 (#116 #120)
+* Bump actions/github-script from 4 to 6 (#115 #121)
+
 ## 4.1.0 (2021/10/15)
 
 * Handle signing-only subkeys (#112)
