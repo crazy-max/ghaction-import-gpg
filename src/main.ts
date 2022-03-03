@@ -33,12 +33,13 @@ async function run(): Promise<void> {
       core.info(`CreationTime : ${privateKey.creationTime}`);
     });
 
+    stateHelper.setFingerprint(privateKey.fingerprint);
+
     let fingerprint = privateKey.fingerprint;
     if (inputs.fingerprint) {
       fingerprint = inputs.fingerprint;
     }
-    stateHelper.setFingerprint(fingerprint);
-    stateHelper.setKeyID(privateKey.keyID);
+
     await core.group(`Fingerprint to use`, async () => {
       core.info(fingerprint);
     });
@@ -127,12 +128,12 @@ async function run(): Promise<void> {
 
 async function cleanup(): Promise<void> {
   if (stateHelper.fingerprint.length <= 0) {
-    core.debug('Fingerprint is not defined. Skipping cleanup.');
+    core.debug('Primary key fingerprint is not defined. Skipping cleanup.');
     return;
   }
   try {
-    core.info('Removing keys');
-    await gpg.deleteKey(stateHelper.keyId);
+    core.info(`Removing key ${stateHelper.fingerprint}`);
+    await gpg.deleteKey(stateHelper.fingerprint);
 
     core.info('Killing GnuPG agent');
     await gpg.killAgent();

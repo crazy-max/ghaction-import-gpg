@@ -439,12 +439,11 @@ function run() {
                 core.info(`Email        : ${privateKey.email}`);
                 core.info(`CreationTime : ${privateKey.creationTime}`);
             }));
+            stateHelper.setFingerprint(privateKey.fingerprint);
             let fingerprint = privateKey.fingerprint;
             if (inputs.fingerprint) {
                 fingerprint = inputs.fingerprint;
             }
-            stateHelper.setFingerprint(fingerprint);
-            stateHelper.setKeyID(privateKey.keyID);
             yield core.group(`Fingerprint to use`, () => __awaiter(this, void 0, void 0, function* () {
                 core.info(fingerprint);
             }));
@@ -522,12 +521,12 @@ function run() {
 function cleanup() {
     return __awaiter(this, void 0, void 0, function* () {
         if (stateHelper.fingerprint.length <= 0) {
-            core.debug('Fingerprint is not defined. Skipping cleanup.');
+            core.debug('Primary key fingerprint is not defined. Skipping cleanup.');
             return;
         }
         try {
-            core.info('Removing keys');
-            yield gpg.deleteKey(stateHelper.keyId);
+            core.info(`Removing key ${stateHelper.fingerprint}`);
+            yield gpg.deleteKey(stateHelper.fingerprint);
             core.info('Killing GnuPG agent');
             yield gpg.killAgent();
         }
@@ -645,19 +644,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setKeyID = exports.setFingerprint = exports.keyId = exports.fingerprint = exports.IsPost = void 0;
+exports.setFingerprint = exports.fingerprint = exports.IsPost = void 0;
 const core = __importStar(__webpack_require__(2186));
 exports.IsPost = !!process.env['STATE_isPost'];
 exports.fingerprint = process.env['STATE_fingerprint'] || '';
-exports.keyId = process.env['STATE_keyId'] || '';
 function setFingerprint(fingerprint) {
     core.saveState('fingerprint', fingerprint);
 }
 exports.setFingerprint = setFingerprint;
-function setKeyID(keyID) {
-    core.saveState('keyId', keyID);
-}
-exports.setKeyID = setKeyID;
 if (!exports.IsPost) {
     core.saveState('isPost', 'true');
 }
