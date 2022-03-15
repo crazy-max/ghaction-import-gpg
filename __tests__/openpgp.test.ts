@@ -1,3 +1,4 @@
+import {describe, expect, it} from '@jest/globals';
 import * as fs from 'fs';
 import * as openpgp from '../src/openpgp';
 
@@ -44,7 +45,8 @@ const userInfos = [
   }
 ];
 
-for (let userInfo of userInfos) {
+for (const userInfo of userInfos) {
+  // eslint-disable-next-line jest/valid-title
   describe(userInfo.key, () => {
     describe('readPrivateKey', () => {
       it('returns a PGP private key from an armored string', async () => {

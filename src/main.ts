@@ -7,7 +7,7 @@ import * as stateHelper from './state-helper';
 
 async function run(): Promise<void> {
   try {
-    let inputs: context.Inputs = await context.getInputs();
+    const inputs: context.Inputs = await context.getInputs();
 
     if (inputs.workdir && inputs.workdir !== '.') {
       core.info(`Using ${inputs.workdir} as working directory...`);
@@ -57,7 +57,7 @@ async function run(): Promise<void> {
       await gpg.configureAgent(gpg.agentConfig);
 
       await core.group(`Getting keygrips`, async () => {
-        for (let keygrip of await gpg.getKeygrips(fingerprint)) {
+        for (const keygrip of await gpg.getKeygrips(fingerprint)) {
           core.info(`Presetting passphrase for ${keygrip}`);
           await gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
             core.debug(stdout);
