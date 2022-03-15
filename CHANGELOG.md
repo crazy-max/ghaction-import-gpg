@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.3.0 (2022/03/15)
+
+* Update dev dependencies and workflow (#130)
+* Fix error deleting keys with short key id (#129)
+* Bump openpgp from 5.1.0 to 5.2.0 (#128)
+
 ## 4.2.0 (2022/03/01)
 
 * Align default ttl with GitHub job run timeout (#126)
