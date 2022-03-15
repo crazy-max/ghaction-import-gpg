@@ -1,3 +1,4 @@
+import {describe, expect, it} from '@jest/globals';
 import * as fs from 'fs';
 import * as gpg from '../src/gpg';
 import {parseKeygripFromGpgColonsOutput} from '../src/gpg';
@@ -52,7 +53,6 @@ const userInfos = [
 describe('getVersion', () => {
   it('returns GnuPG and libgcrypt version', async () => {
     await gpg.getVersion().then(version => {
-      console.log(version);
       expect(version.gnupg).not.toEqual('');
       expect(version.libgcrypt).not.toEqual('');
     });
@@ -62,7 +62,6 @@ describe('getVersion', () => {
 describe('getDirs', () => {
   it('returns GnuPG dirs', async () => {
     await gpg.getDirs().then(dirs => {
-      console.log(dirs);
       expect(dirs.libdir).not.toEqual('');
       expect(dirs.datadir).not.toEqual('');
       expect(dirs.homedir).not.toEqual('');
@@ -71,23 +70,23 @@ describe('getDirs', () => {
 });
 
 describe('configureAgent', () => {
+  // eslint-disable-next-line jest/expect-expect
   it('configures GnuPG agent', async () => {
     await gpg.configureAgent(gpg.agentConfig);
   });
 });
 
-for (let userInfo of userInfos) {
+for (const userInfo of userInfos) {
+  // eslint-disable-next-line jest/valid-title
   describe(userInfo.key, () => {
     describe('importKey', () => {
       it('imports key (as armored string) to GnuPG', async () => {
         await gpg.importKey(userInfo.pgp).then(output => {
-          console.log(output);
           expect(output).not.toEqual('');
         });
       });
       it('imports key (as base64 string) to GnuPG', async () => {
         await gpg.importKey(userInfo.pgp_base64).then(output => {
-          console.log(output);
           expect(output).not.toEqual('');
         });
       });
@@ -97,7 +96,6 @@ for (let userInfo of userInfos) {
       it('returns the keygrips', async () => {
         await gpg.importKey(userInfo.pgp);
         await gpg.getKeygrips(userInfo.fingerprint).then(keygrips => {
-          console.log(keygrips);
           expect(keygrips.length).toEqual(userInfo.keygrips.length);
           for (let i = 0; i < keygrips.length; i++) {
             expect(keygrips[i]).toEqual(userInfo.keygrips[i]);
@@ -109,9 +107,8 @@ for (let userInfo of userInfos) {
     describe('getKeygrip', () => {
       it('returns the keygrip for a given fingerprint', async () => {
         await gpg.importKey(userInfo.pgp);
-        for (let [i, fingerprint] of userInfo.fingerprints.entries()) {
+        for (const [i, fingerprint] of userInfo.fingerprints.entries()) {
           await gpg.getKeygrip(fingerprint).then(keygrip => {
-            console.log(`Fingerprint: ${fingerprint}; Index: ${i}; Keygrip: ${keygrip}`);
             expect(keygrip.length).toEqual(userInfo.keygrips[i].length);
             expect(keygrip).toEqual(userInfo.keygrips[i]);
           });
@@ -123,9 +120,8 @@ for (let userInfo of userInfos) {
       it('presets passphrase', async () => {
         await gpg.importKey(userInfo.pgp);
         await gpg.configureAgent(gpg.agentConfig);
-        for (let keygrip of await gpg.getKeygrips(userInfo.fingerprint)) {
+        for (const keygrip of await gpg.getKeygrips(userInfo.fingerprint)) {
           await gpg.presetPassphrase(keygrip, userInfo.passphrase).then(output => {
-            console.log(output);
             expect(output).not.toEqual('');
           });
         }
@@ -133,6 +129,7 @@ for (let userInfo of userInfos) {
     });
 
     describe('deleteKey', () => {
+      // eslint-disable-next-line jest/expect-expect
       it('removes key from GnuPG', async () => {
         await gpg.importKey(userInfo.pgp);
         await gpg.deleteKey(userInfo.primary_key_fingerprint);
@@ -142,6 +139,7 @@ for (let userInfo of userInfos) {
 }
 
 describe('killAgent', () => {
+  // eslint-disable-next-line jest/expect-expect
   it('kills GnuPG agent', async () => {
     await gpg.killAgent();
   });
