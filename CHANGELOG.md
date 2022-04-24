@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.4.0 (2022/04/24)
+
+* Use eslint prettier plugin (#132)
+* Bump openpgp from 5.2.0 to 5.2.1 (#131)
+* Bump minimist from 1.2.5 to 1.2.6 (#134)
+* Bump @actions/exec from 1.1.0 to 1.1.1 (#133)
+
 ## 4.3.0 (2022/03/15)
 
 * Update dev dependencies and workflow (#130)
