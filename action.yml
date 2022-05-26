@@ -56,6 +56,6 @@ outputs:
     description: 'Email address associated with the GPG key'
 
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
   post: 'dist/index.js'
