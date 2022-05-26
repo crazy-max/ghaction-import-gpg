@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.0 (2022/05/26)
+
+* Node 16 as default runtime (#136)
+  * This requires a minimum [Actions Runner](https://github.com/actions/runner/releases/tag/v2.285.0) version of v2.285.0, which is by default available in GHES 3.4 or later.
+
 ## 4.4.0 (2022/04/24)
 
 * Use eslint prettier plugin (#132)
