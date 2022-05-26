@@ -75,7 +75,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Import GPG key
         id: import_gpg
@@ -103,7 +103,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5
@@ -138,7 +138,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       -
         name: Import GPG key
         id: import_gpg
