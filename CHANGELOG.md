@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.1.0 (2022/07/24)
+
+* Bump openpgp from 5.2.1 to 5.3.1 (#145)
+* Bump @actions/core from 1.6.0 to 1.9.0 (#143)
+
 ## 5.0.0 (2022/05/26)
 
 * Node 16 as default runtime (#136)
