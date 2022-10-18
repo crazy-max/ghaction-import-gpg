@@ -83,13 +83,13 @@ async function run(): Promise<void> {
 
     await core.group(`Setting outputs`, async () => {
       core.info(`fingerprint=${fingerprint}`);
-      context.setOutput('fingerprint', fingerprint);
+      core.setOutput('fingerprint', fingerprint);
       core.info(`keyid=${privateKey.keyID}`);
-      context.setOutput('keyid', privateKey.keyID);
+      core.setOutput('keyid', privateKey.keyID);
       core.info(`name=${privateKey.name}`);
-      context.setOutput('name', privateKey.name);
+      core.setOutput('name', privateKey.name);
       core.info(`email=${privateKey.email}`);
-      context.setOutput('email', privateKey.email);
+      core.setOutput('email', privateKey.email);
     });
 
     if (inputs.gitUserSigningkey) {
