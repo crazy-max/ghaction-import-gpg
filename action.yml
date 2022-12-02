@@ -52,6 +52,8 @@ outputs:
     description: 'Fingerprint of the GPG key (recommended as user ID)'
   keyid:
     description: 'Low 64 bits of the X.509 certificate SHA-1 fingerprint'
+  name:
+    description: 'Name associated with the GPG key'
   email:
     description: 'Email address associated with the GPG key'
 
