@@ -121,7 +121,7 @@ async function run(): Promise<void> {
         await git.setConfig('push.gpgsign', inputs.gitPushGpgsign, inputs.gitConfigGlobal);
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     core.setFailed(error.message);
   }
 }
@@ -137,7 +137,7 @@ async function cleanup(): Promise<void> {
 
     core.info('Killing GnuPG agent');
     await gpg.killAgent();
-  } catch (error) {
+  } catch (error: any) {
     core.warning(error.message);
   }
 }

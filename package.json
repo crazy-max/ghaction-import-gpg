@@ -28,6 +28,8 @@
     "openpgp": "^5.5.0"
   },
   "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@types/addressparser": "^1.0.1",
     "@types/node": "^16.11.26",
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.14.0",

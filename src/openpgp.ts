@@ -20,7 +20,7 @@ export const readPrivateKey = async (key: string): Promise<PrivateKey> => {
   });
 
   const address = await privateKey.getPrimaryUser().then(primaryUser => {
-    return addressparser(primaryUser.user.userID?.userID)[0];
+    return addressparser(primaryUser.user.userID?.userID!)[0];
   });
 
   return {
