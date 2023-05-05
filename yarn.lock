@@ -2781,10 +2781,10 @@ onetime@^5.1.2:
   dependencies:
     mimic-fn "^2.1.0"
 
-openpgp@^5.5.0:
-  version "5.5.0"
-  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-5.5.0.tgz#235ae5a49d5fda5cfd1d82c4c42cd91433478c14"
-  integrity sha512-SpwcJnxrK9Y0HRM6KxSFqkAEOSWEabCH/c8dII/+y2e5f6KvuDG5ZE7JXaPBaVJNE4VUZZeTphxXDoZD0KOHrw==
+openpgp@^5.8.0:
+  version "5.8.0"
+  resolved "https://registry.yarnpkg.com/openpgp/-/openpgp-5.8.0.tgz#5e3033e8df59d1626ce65aa01b3cf5abee7ff26b"
+  integrity sha512-hq4+4s/vpjuwGgZSjplGp4j5FzSz+KwiFRiqMx+ZXr7VCK3CvTkktYilMTZMrf2vHsFH8aQ0596Lmn07HeKRmQ==
   dependencies:
     asn1.js "^5.0.0"
 
