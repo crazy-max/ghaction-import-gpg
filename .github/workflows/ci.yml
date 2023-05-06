@@ -55,6 +55,7 @@ jobs:
             if (!fs.existsSync(gnupgfolder)){
                 fs.mkdirSync(gnupgfolder);
             }
+            fs.chmodSync(gnupgfolder, '0700');
             fs.copyFile('__tests__/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
                 if (err) throw err;
             });
@@ -69,11 +70,11 @@ jobs:
             core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
-        id: import_gpg
         uses: ./
         with:
           gpg_private_key: ${{ steps.test.outputs.pgp }}
           passphrase: ${{ steps.test.outputs.passphrase }}
+          trust_level: 5
           git_config_global: ${{ matrix.global }}
           git_user_signingkey: true
           git_commit_gpgsign: true
@@ -116,7 +117,6 @@ jobs:
             core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
-        id: import_gpg
         uses: ./
         with:
           gpg_private_key: ${{ steps.test.outputs.pgp-base64 }}
@@ -126,3 +126,62 @@ jobs:
           git_tag_gpgsign: true
           git_push_gpgsign: if-asked
           fingerprint: ${{ matrix.fingerprint }}
+
+  trust:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        key:
+          - test-key
+        level:
+          - ''
+          - 5
+          - 4
+          - 3
+          - 2
+          - 1
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: GPG conf
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const gnupgfolder = `${require('os').homedir()}/.gnupg`;
+            if (!fs.existsSync(gnupgfolder)){
+                fs.mkdirSync(gnupgfolder);
+            }
+            fs.chmodSync(gnupgfolder, '0700');
+            fs.copyFile('__tests__/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
+                if (err) throw err;
+            });
+      -
+        name: Get test key and passphrase
+        uses: actions/github-script@v6
+        id: test
+        with:
+          script: |
+            const fs = require('fs');
+            core.setOutput('pgp', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+      -
+        name: Import GPG
+        id: import_gpg
+        uses: ./
+        with:
+          gpg_private_key: ${{ steps.test.outputs.pgp }}
+          passphrase: ${{ steps.test.outputs.passphrase }}
+          trust_level: ${{ matrix.level }}
+      -
+        name: List trust values
+        run: |
+          gpg --export-ownertrust
+        shell: bash

@@ -107,10 +107,10 @@ for (const userInfo of userInfos) {
     describe('getKeygrip', () => {
       it('returns the keygrip for a given fingerprint', async () => {
         await gpg.importKey(userInfo.pgp);
-        for (const [i, fingerprint] of userInfo.fingerprints.entries()) {
+        for (const {idx, fingerprint} of userInfo.fingerprints.map((fingerprint, idx) => ({idx, fingerprint}))) {
           await gpg.getKeygrip(fingerprint).then(keygrip => {
-            expect(keygrip.length).toEqual(userInfo.keygrips[i].length);
-            expect(keygrip).toEqual(userInfo.keygrips[i]);
+            expect(keygrip.length).toEqual(userInfo.keygrips[idx].length);
+            expect(keygrip).toEqual(userInfo.keygrips[idx]);
           });
         }
       });
@@ -125,6 +125,16 @@ for (const userInfo of userInfos) {
             expect(output).not.toEqual('');
           });
         }
+      });
+    });
+
+    describe('setTrustLevel', () => {
+      it('set trust level', async () => {
+        await gpg.importKey(userInfo.pgp);
+        await gpg.configureAgent(gpg.agentConfig);
+        expect(() => {
+          gpg.setTrustLevel(userInfo.keyID, '5');
+        }).not.toThrow();
       });
     });
 
