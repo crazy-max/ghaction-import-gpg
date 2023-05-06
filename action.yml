@@ -13,6 +13,9 @@ inputs:
   passphrase:
     description: 'Passphrase of the GPG private key'
     required: false
+  trust_level:
+    description: "Set key's trust level"
+    required: false
   git_config_global:
     description: 'Set Git config global'
     default: 'false'

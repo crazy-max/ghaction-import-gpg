@@ -81,6 +81,14 @@ async function run(): Promise<void> {
       });
     }
 
+    if (inputs.trustLevel) {
+      await core.group(`Setting key's trust level`, async () => {
+        await gpg.setTrustLevel(privateKey.keyID, inputs.trustLevel).then(() => {
+          core.info(`Trust level set to ${inputs.trustLevel} for ${privateKey.keyID}`);
+        });
+      });
+    }
+
     await core.group(`Setting outputs`, async () => {
       core.info(`fingerprint=${fingerprint}`);
       core.setOutput('fingerprint', fingerprint);

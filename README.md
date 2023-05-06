@@ -19,6 +19,7 @@ ___
   * [Workflow](#workflow)
   * [Sign commits](#sign-commits)
   * [Use a subkey](#use-a-subkey)
+  * [Set key's trust level](#set-keys-trust-level)
 * [Customizing](#customizing)
   * [inputs](#inputs)
   * [outputs](#outputs)
@@ -76,7 +77,6 @@ jobs:
         uses: actions/checkout@v3
       -
         name: Import GPG key
-        id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v5
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -139,7 +139,6 @@ jobs:
         uses: actions/checkout@v3
       -
         name: Import GPG key
-        id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v5
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -164,26 +163,63 @@ sub   ed25519 2021-09-24 [S]
 
 You can use the subkey with signing capability whose fingerprint is `C17D11ADF199F12A30A0910F1F80449BE0B08CB8`.
 
+### Set key's trust level
+
+With the `trust_level` input, you can specify the trust level of the GPG key.
+
+Valid values are:
+* `1`: unknown
+* `2`: never
+* `3`: marginal
+* `4`: full
+* `5`: ultimate
+
+```yaml
+name: import-gpg
+
+on:
+  push:
+    branches: master
+
+jobs:
+  import-gpg:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          trust_level: 5
+```
+
 ## Customizing
 
 ### inputs
 
 Following inputs can be used as `step.with` keys
 
-| Name                                  | Type    | Description                                    |
-|---------------------------------------|---------|------------------------------------------------|
-| `gpg_private_key`                     | String  | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
-| `passphrase`                          | String  | Passphrase of the GPG private key |
-| `git_config_global`                   | Bool    | Set Git config global (default `false`) |
-| `git_user_signingkey`                 | Bool    | Set GPG signing keyID for this Git repository (default `false`) |
-| `git_commit_gpgsign`                  | Bool    | Sign all commits automatically. (default `false`) |
-| `git_tag_gpgsign`                     | Bool    | Sign all tags automatically. (default `false`) |
-| `git_push_gpgsign`                    | String  | Sign all pushes automatically. (default `if-asked`) |
-| `git_committer_name`                  | String  | Set commit author's name (defaults to the name associated with the GPG key) |
-| `git_committer_email`                 | String  | Set commit author's email (defaults to the email address associated with the GPG key) |
-| `workdir`                             | String  | Working directory (below repository root) (default `.`) |
-| `fingerprint`                         | String  | Specific fingerprint to use (subkey) |
+| Name                  | Type   | Description                                                                                |
+|-----------------------|--------|--------------------------------------------------------------------------------------------|
+| `gpg_private_key`     | String | GPG private key exported as an ASCII armored version or its base64 encoding (**required**) |
+| `passphrase`          | String | Passphrase of the GPG private key                                                          |
+| `trust_level`         | String | Set key's trust level                                                                      |
+| `git_config_global`   | Bool   | Set Git config global (default `false`)                                                    |
+| `git_user_signingkey` | Bool   | Set GPG signing keyID for this Git repository (default `false`)                            |
+| `git_commit_gpgsign`  | Bool   | Sign all commits automatically. (default `false`)                                          |
+| `git_tag_gpgsign`     | Bool   | Sign all tags automatically. (default `false`)                                             |
+| `git_push_gpgsign`    | String | Sign all pushes automatically. (default `if-asked`)                                        |
+| `git_committer_name`  | String | Set commit author's name (defaults to the name associated with the GPG key)                |
+| `git_committer_email` | String | Set commit author's email (defaults to the email address associated with the GPG key)      |
+| `workdir`             | String | Working directory (below repository root) (default `.`)                                    |
+| `fingerprint`         | String | Specific fingerprint to use (subkey)                                                       |
 
+> **Note**
+>
 > `git_user_signingkey` needs to be enabled for `git_commit_gpgsign`, `git_tag_gpgsign`,
 > `git_push_gpgsign`, `git_committer_name`, `git_committer_email` inputs.
 
@@ -191,12 +227,12 @@ Following inputs can be used as `step.with` keys
 
 Following outputs are available
 
-| Name          | Type    | Description                           |
-|---------------|---------|---------------------------------------|
-| `fingerprint` | String  | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html)) |
-| `keyid`       | String  | Low 64 bits of the X.509 certificate SHA-1 fingerprint |
-| `name`        | String  | Name associated with the GPG key       |
-| `email`       | String  | Email address associated with the GPG key |
+| Name          | Type   | Description                                                                                                                     |
+|---------------|--------|---------------------------------------------------------------------------------------------------------------------------------|
+| `fingerprint` | String | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html)) |
+| `keyid`       | String | Low 64 bits of the X.509 certificate SHA-1 fingerprint                                                                          |
+| `name`        | String | Name associated with the GPG key                                                                                                |
+| `email`       | String | Email address associated with the GPG key                                                                                       |
 
 ## Contributing
 

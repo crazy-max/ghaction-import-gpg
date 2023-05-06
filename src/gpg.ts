@@ -206,6 +206,20 @@ export const presetPassphrase = async (keygrip: string, passphrase: string): Pro
   return await gpgConnectAgent(`KEYINFO ${keygrip}`);
 };
 
+export const setTrustLevel = async (keyID: string, trust: string): Promise<void> => {
+  await exec
+    .getExecOutput('gpg', ['--batch', '--no-tty', '--command-fd', '0', '--edit-key', keyID], {
+      ignoreReturnCode: true,
+      silent: true,
+      input: Buffer.from(`trust\n${trust}\ny\nquit\n`)
+    })
+    .then(res => {
+      if (res.stderr.length > 0 && res.exitCode != 0) {
+        throw new Error(res.stderr);
+      }
+    });
+};
+
 export const deleteKey = async (fingerprint: string): Promise<void> => {
   await exec
     .getExecOutput('gpg', ['--batch', '--yes', '--delete-secret-keys', fingerprint], {
