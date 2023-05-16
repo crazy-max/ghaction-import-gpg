@@ -3064,7 +3064,7 @@ __metadata:
     eslint-plugin-jest: ^27.2.1
     eslint-plugin-prettier: ^4.2.1
     jest: ^29.5.0
-    openpgp: ^5.8.0
+    openpgp: ^5.9.0
     prettier: ^2.8.8
     ts-jest: ^29.1.0
     ts-node: ^10.9.1
@@ -4206,12 +4206,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openpgp@npm:^5.8.0":
-  version: 5.8.0
-  resolution: "openpgp@npm:5.8.0"
+"openpgp@npm:^5.9.0":
+  version: 5.9.0
+  resolution: "openpgp@npm:5.9.0"
   dependencies:
     asn1.js: ^5.0.0
-  checksum: 81eb96bc6df5c7a5eef2b2e2e4602959315e09a1b10ed30326226a12086d4b4aacf981b8329ec3a10b99cf894a14d037b562e62e4b359b27214177704763cd20
+  checksum: 787e9e5169aa514ac309e1f813699d1c080ebd579db25d6ec89d1f2bf225d7eeb615364ca3ada543e6445d6363ea49ffec90ffa306274033a5cf01694b01632a
   languageName: node
   linkType: hard
 
