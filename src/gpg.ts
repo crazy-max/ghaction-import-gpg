@@ -193,7 +193,11 @@ export const getKeygrip = async (fingerprint: string): Promise<string> => {
 };
 
 export const configureAgent = async (config: string): Promise<void> => {
-  const gpgAgentConf = path.join(await getGnupgHome(), 'gpg-agent.conf');
+  const gnupgHomeDir = await getGnupgHome();
+  if (!fs.existsSync(gnupgHomeDir)) {
+    fs.mkdirSync(gnupgHomeDir, {recursive: true});
+  }
+  const gpgAgentConf = path.join(gnupgHomeDir, 'gpg-agent.conf');
   await fs.writeFile(gpgAgentConf, config, function (err) {
     if (err) throw err;
   });
