@@ -50,35 +50,32 @@ async function run(): Promise<void> {
       });
     });
 
-    if (inputs.passphrase && !inputs.fingerprint) {
-      // Set the passphrase for all subkeys
-
-      core.info('Configuring GnuPG agent');
-      await gpg.configureAgent(gpg.agentConfig);
-
-      await core.group(`Getting keygrips`, async () => {
-        for (const keygrip of await gpg.getKeygrips(fingerprint)) {
-          core.info(`Presetting passphrase for ${keygrip}`);
+    if (inputs.passphrase) {
+      await core.group(`Configuring GnuPG agent`, async () => {
+        const gpgHome = await gpg.getHome();
+        core.info(`GnuPG home: ${gpgHome}`);
+        await gpg.configureAgent(gpgHome, gpg.agentConfig);
+      });
+      if (!inputs.fingerprint) {
+        // Set the passphrase for all subkeys
+        await core.group(`Getting keygrips`, async () => {
+          for (const keygrip of await gpg.getKeygrips(fingerprint)) {
+            core.info(`Presetting passphrase for ${keygrip}`);
+            await gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
+              core.debug(stdout);
+            });
+          }
+        });
+      } else {
+        // Set the passphrase only for the subkey specified in the input `fingerprint`
+        await core.group(`Getting keygrip for fingerprint`, async () => {
+          const keygrip = await gpg.getKeygrip(fingerprint);
+          core.info(`Presetting passphrase for key ${fingerprint} with keygrip ${keygrip}`);
           await gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
             core.debug(stdout);
           });
-        }
-      });
-    }
-
-    if (inputs.passphrase && inputs.fingerprint) {
-      // Set the passphrase only for the subkey specified in the input `fingerprint`
-
-      core.info('Configuring GnuPG agent');
-      await gpg.configureAgent(gpg.agentConfig);
-
-      await core.group(`Getting keygrip for fingerprint`, async () => {
-        const keygrip = await gpg.getKeygrip(fingerprint);
-        core.info(`Presetting passphrase for key ${fingerprint} with keygrip ${keygrip}`);
-        await gpg.presetPassphrase(keygrip, inputs.passphrase).then(stdout => {
-          core.debug(stdout);
         });
-      });
+      }
     }
 
     if (inputs.trustLevel) {
