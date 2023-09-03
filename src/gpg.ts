@@ -20,17 +20,6 @@ export interface Dirs {
   homedir: string;
 }
 
-const getGnupgHome = async (): Promise<string> => {
-  if (process.env.GNUPGHOME) {
-    return process.env.GNUPGHOME;
-  }
-  let homedir: string = path.join(process.env.HOME || '', '.gnupg');
-  if (os.platform() == 'win32' && !process.env.HOME) {
-    homedir = path.join(process.env.USERPROFILE || '', '.gnupg');
-  }
-  return homedir;
-};
-
 const gpgConnectAgent = async (command: string): Promise<string> => {
   return await exec
     .getExecOutput(`gpg-connect-agent "${command}" /bye`, [], {
@@ -48,6 +37,26 @@ const gpgConnectAgent = async (command: string): Promise<string> => {
       }
       return res.stdout.trim();
     });
+};
+
+export const getHome = async (): Promise<string> => {
+  let homedir = '';
+  if (process.env.GNUPGHOME) {
+    homedir = process.env.GNUPGHOME;
+  } else if (os.platform() == 'win32' && !process.env.HOME && process.env.USERPROFILE) {
+    homedir = path.join(process.env.USERPROFILE, '.gnupg');
+  } else if (process.env.HOME) {
+    homedir = path.join(process.env.HOME, '.gnupg');
+  } else {
+    homedir = (await getDirs()).homedir;
+  }
+  if (homedir.length == 0) {
+    throw new Error('Unable to determine GnuPG home directory');
+  }
+  if (!fs.existsSync(homedir)) {
+    fs.mkdirSync(homedir, {recursive: true});
+  }
+  return homedir;
 };
 
 export const getVersion = async (): Promise<Version> => {
@@ -192,12 +201,8 @@ export const getKeygrip = async (fingerprint: string): Promise<string> => {
     });
 };
 
-export const configureAgent = async (config: string): Promise<void> => {
-  const gnupgHomeDir = await getGnupgHome();
-  if (!fs.existsSync(gnupgHomeDir)) {
-    fs.mkdirSync(gnupgHomeDir, {recursive: true});
-  }
-  const gpgAgentConf = path.join(gnupgHomeDir, 'gpg-agent.conf');
+export const configureAgent = async (homedir: string, config: string): Promise<void> => {
+  const gpgAgentConf = path.join(homedir, 'gpg-agent.conf');
   await fs.writeFile(gpgAgentConf, config, function (err) {
     if (err) throw err;
   });

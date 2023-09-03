@@ -72,7 +72,7 @@ describe('getDirs', () => {
 describe('configureAgent', () => {
   // eslint-disable-next-line jest/expect-expect
   it('configures GnuPG agent', async () => {
-    await gpg.configureAgent(gpg.agentConfig);
+    await gpg.configureAgent(await gpg.getHome(), gpg.agentConfig);
   });
 });
 
@@ -119,7 +119,7 @@ for (const userInfo of userInfos) {
     describe('presetPassphrase', () => {
       it('presets passphrase', async () => {
         await gpg.importKey(userInfo.pgp);
-        await gpg.configureAgent(gpg.agentConfig);
+        await gpg.configureAgent(await gpg.getHome(), gpg.agentConfig);
         for (const keygrip of await gpg.getKeygrips(userInfo.fingerprint)) {
           await gpg.presetPassphrase(keygrip, userInfo.passphrase).then(output => {
             expect(output).not.toEqual('');
@@ -131,7 +131,7 @@ for (const userInfo of userInfos) {
     describe('setTrustLevel', () => {
       it('set trust level', async () => {
         await gpg.importKey(userInfo.pgp);
-        await gpg.configureAgent(gpg.agentConfig);
+        await gpg.configureAgent(await gpg.getHome(), gpg.agentConfig);
         expect(() => {
           gpg.setTrustLevel(userInfo.keyID, '5');
         }).not.toThrow();
