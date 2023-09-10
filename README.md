@@ -29,7 +29,7 @@ ___
 ## Features
 
 * Works on Linux, macOS and Windows [virtual environments](https://help.github.com/en/articles/virtual-environments-for-github-actions#supported-virtual-environments-and-hardware-resources)
-* Allow to seed the internal cache of `gpg-agent` with provided passphrase
+* Allow seeding the internal cache of `gpg-agent` with provided passphrase
 * Signing-only subkeys support
 * Purge imported GPG key, cache information and kill agent from runner
 * (Git) Enable signing for Git commits, tags and pushes
@@ -55,7 +55,8 @@ gpg --armor --export-secret-key joe@foo.bar | xclip
 ```
 
 Paste your clipboard as a [`secret`](https://help.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets)
-named `GPG_PRIVATE_KEY` for example. Create another secret with the `PASSPHRASE` if applicable.
+named `GPG_PRIVATE_KEY` for example. Create another secret with the
+`PASSPHRASE` if applicable.
 
 ## Usage
 
@@ -74,10 +75,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v5
+        uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -101,10 +102,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v5
+        uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -121,7 +122,8 @@ jobs:
 
 ### Use a subkey
 
-With the input `fingerprint`, you can specify which one of the subkeys in a GPG key you want to use for signing.
+With the input `fingerprint`, you can specify which one of the subkeys in a GPG
+key you want to use for signing.
 
 ```yaml
 name: import-gpg
@@ -136,10 +138,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v5
+        uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -151,7 +153,7 @@ jobs:
 
 For example, given this GPG key with a signing subkey:
 
-```s
+```
 pub   ed25519 2021-09-24 [C]
       87F257B89CE462100BEC0FFE6071D218380FDCC8
       Keygrip = F5C3ABFAAB36B427FD98C4EDD0387E08EA1E8092
@@ -187,10 +189,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       -
         name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v5
+        uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
@@ -201,7 +203,7 @@ jobs:
 
 ### inputs
 
-Following inputs can be used as `step.with` keys
+The following inputs can be used as `step.with` keys
 
 | Name                  | Type   | Description                                                                                |
 |-----------------------|--------|--------------------------------------------------------------------------------------------|
@@ -236,11 +238,10 @@ Following outputs are available
 
 ## Contributing
 
-Want to contribute? Awesome! The most basic way to show your support is to star the project, or to raise issues. If
-you want to open a pull request, please read the [contributing guidelines](.github/CONTRIBUTING.md).
-
-You can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max) or by
-making a [Paypal donation](https://www.paypal.me/crazyws) to ensure this journey continues indefinitely!
+Want to contribute? Awesome! The most basic way to show your support is to star
+the project, or to raise issues. You can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max)
+or by making a [PayPal donation](https://www.paypal.me/crazyws) to ensure this
+journey continues indefinitely!
 
 Thanks again for your support, it is much appreciated! :pray:
 
