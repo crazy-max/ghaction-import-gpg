@@ -236,6 +236,10 @@ Following outputs are available
 | `name`        | String | Name associated with the GPG key                                                                                                |
 | `email`       | String | Email address associated with the GPG key                                                                                       |
 
+## Notes
+
+Make sure to [add the corresponding public key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account). This is easy to forget, since unlike SSH keys, where you only need to upload 1 thing to GitHub, in this case, you need to upload both the public and private keys to enable this workflow.
+
 ## Contributing
 
 Want to contribute? Awesome! The most basic way to show your support is to star
