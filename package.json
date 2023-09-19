@@ -30,7 +30,7 @@
     "@actions/core": "^1.10.0",
     "@actions/exec": "^1.1.1",
     "addressparser": "^1.0.1",
-    "openpgp": "^5.10.1"
+    "openpgp": "^5.10.2"
   },
   "devDependencies": {
     "@types/node": "^20.6.0",
