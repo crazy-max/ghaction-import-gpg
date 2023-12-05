@@ -136,6 +136,14 @@ async function cleanup(): Promise<void> {
     core.debug('Primary key fingerprint is not defined. Skipping cleanup.');
     return;
   }
+
+  const inputs: context.Inputs = await context.getInputs();
+
+  if (!inputs.postAction) {
+    core.debug('Post action is disabled. Skipping cleanup.');
+    return;
+  }
+
   try {
     core.info(`Removing key ${stateHelper.fingerprint}`);
     await gpg.deleteKey(stateHelper.fingerprint);

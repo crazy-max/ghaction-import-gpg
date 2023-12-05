@@ -49,6 +49,9 @@ inputs:
   fingerprint:
     description: 'Specific fingerprint to use (subkey)'
     required: false
+  post_action:
+    description: 'Skip cleanup if set'
+    required: true
 
 outputs:
   fingerprint:

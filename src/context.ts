@@ -13,6 +13,7 @@ export interface Inputs {
   gitCommitterEmail: string;
   workdir: string;
   fingerprint: string;
+  postAction: boolean;
 }
 
 export async function getInputs(): Promise<Inputs> {
@@ -28,6 +29,7 @@ export async function getInputs(): Promise<Inputs> {
     gitCommitterName: core.getInput('git_committer_name'),
     gitCommitterEmail: core.getInput('git_committer_email'),
     workdir: core.getInput('workdir') || '.',
-    fingerprint: core.getInput('fingerprint')
+    fingerprint: core.getInput('fingerprint'),
+    postAction: core.getBooleanInput('post_action')
   };
 }
