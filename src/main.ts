@@ -28,8 +28,10 @@ async function run(): Promise<void> {
     await core.group(`GPG private key info`, async () => {
       core.info(`Fingerprint  : ${privateKey.fingerprint}`);
       core.info(`KeyID        : ${privateKey.keyID}`);
-      core.info(`Name         : ${privateKey.name}`);
-      core.info(`Email        : ${privateKey.email}`);
+      for (const userId of privateKey.allUserIds) {
+        const isPrimary = userId.email === privateKey.primaryUserId.email;
+        core.info(`User ID      : ${userId.name} <${userId.email}>${isPrimary ? ' (primary)' : ''}`);
+      }
       core.info(`CreationTime : ${privateKey.creationTime}`);
     });
 
@@ -91,21 +93,24 @@ async function run(): Promise<void> {
       core.setOutput('fingerprint', fingerprint);
       core.info(`keyid=${privateKey.keyID}`);
       core.setOutput('keyid', privateKey.keyID);
-      core.info(`name=${privateKey.name}`);
-      core.setOutput('name', privateKey.name);
-      core.info(`email=${privateKey.email}`);
-      core.setOutput('email', privateKey.email);
+      core.info(`name=${privateKey.primaryUserId.name}`);
+      core.setOutput('name', privateKey.primaryUserId.name);
+      core.info(`email=${privateKey.primaryUserId.email}`);
+      core.setOutput('email', privateKey.primaryUserId.email);
+      core.info(`userids=${JSON.stringify(privateKey.allUserIds)}`);
+      core.setOutput('userids', privateKey.allUserIds);
     });
 
     if (inputs.gitUserSigningkey) {
       core.info('Setting GPG signing keyID for this Git repository');
       await git.setConfig('user.signingkey', privateKey.keyID, inputs.gitConfigGlobal);
 
-      const userEmail = inputs.gitCommitterEmail || privateKey.email;
-      const userName = inputs.gitCommitterName || privateKey.name;
+      const userName = inputs.gitCommitterName || privateKey.primaryUserId.name;
+      const userEmail = inputs.gitCommitterEmail || privateKey.primaryUserId.email;
 
-      if (userEmail != privateKey.email) {
-        core.setFailed(`Committer email "${inputs.gitCommitterEmail}" (name: "${inputs.gitCommitterName}") does not match GPG private key email "${privateKey.email}" (name: "${privateKey.name}")`);
+      if (!privateKey.allUserIds.some(id => id.email === userEmail)) {
+        const keyIdentities = privateKey.allUserIds.map(id => `"${id.email}" (name: "${id.name}")`).join(', ');
+        core.setFailed(`Committer email "${inputs.gitCommitterEmail}" (name: "${inputs.gitCommitterName}") does not match GPG any of the private key user id email addresses: ${keyIdentities}`);
         return;
       }
 

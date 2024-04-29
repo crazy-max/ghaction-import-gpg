@@ -56,9 +56,11 @@ outputs:
   keyid:
     description: 'Low 64 bits of the X.509 certificate SHA-1 fingerprint'
   name:
-    description: 'Name associated with the GPG key'
+    description: 'Primary name associated with the GPG key'
   email:
-    description: 'Email address associated with the GPG key'
+    description: 'Primary email address associated with the GPG key'
+  userids:
+    description: 'All user ids (including primary) associated with the GPG Key'
 
 runs:
   using: 'node20'
