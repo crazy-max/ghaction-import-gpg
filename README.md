@@ -229,12 +229,13 @@ The following inputs can be used as `step.with` keys
 
 Following outputs are available
 
-| Name          | Type   | Description                                                                                                                     |
-|---------------|--------|---------------------------------------------------------------------------------------------------------------------------------|
-| `fingerprint` | String | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html)) |
-| `keyid`       | String | Low 64 bits of the X.509 certificate SHA-1 fingerprint                                                                          |
-| `name`        | String | Name associated with the GPG key                                                                                                |
-| `email`       | String | Email address associated with the GPG key                                                                                       |
+| Name          | Type          | Description                                                                                                                                                                                                                                                                         |
+|---------------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `fingerprint` | String        | Fingerprint of the GPG key (recommended as [user ID](https://www.gnupg.org/documentation/manuals/gnupg/Specify-a-User-ID.html))                                                                                                                                                     |
+| `keyid`       | String        | Low 64 bits of the X.509 certificate SHA-1 fingerprint                                                                                                                                                                                                                              |
+| `name`        | String        | Primary name associated with the GPG key                                                                                                                                                                                                                                            |
+| `email`       | String        | Primary email address associated with the GPG key                                                                                                                                                                                                                                   |
+| `userids`     | String (JSON) | All user ids (including primary) associated with the GPG Key.<br/>The output is a JSON array where each object has a `name` and `email` key. Use [fromJson](https://docs.github.com/en/actions/learn-github-actions/expressions#fromjson) to turn the String back into a JSON array |
 
 ## Contributing
 
