@@ -1916,18 +1916,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"asn1.js@npm:^5.0.0":
-  version: 5.4.1
-  resolution: "asn1.js@npm:5.4.1"
-  dependencies:
-    bn.js: ^4.0.0
-    inherits: ^2.0.1
-    minimalistic-assert: ^1.0.0
-    safer-buffer: ^2.1.0
-  checksum: 3786a101ac6f304bd4e9a7df79549a7561950a13d4bcaec0c7790d44c80d147c1a94ba3d4e663673406064642a40b23fcd6c82a9952468e386c1a1376d747f9a
-  languageName: node
-  linkType: hard
-
 "babel-jest@npm:^29.6.4":
   version: 29.6.4
   resolution: "babel-jest@npm:29.6.4"
@@ -2015,13 +2003,6 @@ __metadata:
   version: 1.6.51
   resolution: "big-integer@npm:1.6.51"
   checksum: 3d444173d1b2e20747e2c175568bedeebd8315b0637ea95d75fd27830d3b8e8ba36c6af40374f36bdaea7b5de376dcada1b07587cb2a79a928fccdb6e6e3c518
-  languageName: node
-  linkType: hard
-
-"bn.js@npm:^4.0.0":
-  version: 4.11.9
-  resolution: "bn.js@npm:4.11.9"
-  checksum: 59b67623585ca568f81bc0a00b215cd09ab75cbf632c73fcbe6a19c207ea7a510684e61becad6cdfcc678f716792f49de5a70fc057465e4e5e79f13d81291171
   languageName: node
   linkType: hard
 
@@ -3278,7 +3259,7 @@ __metadata:
     eslint-plugin-jest: ^27.2.3
     eslint-plugin-prettier: ^5.0.0
     jest: ^29.6.4
-    openpgp: ^5.11.2
+    openpgp: ^6.1.0
     prettier: ^3.0.3
     ts-jest: ^29.1.1
     ts-node: ^10.9.1
@@ -3329,7 +3310,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"inherits@npm:2, inherits@npm:^2.0.1, inherits@npm:^2.0.3":
+"inherits@npm:2, inherits@npm:^2.0.3":
   version: 2.0.4
   resolution: "inherits@npm:2.0.4"
   checksum: 4a48a733847879d6cf6691860a6b1e3f0f4754176e4d71494c41f3475553768b10f84b5ce1d40fbd0e34e6bfbb864ee35858ad4dd2cf31e02fc4a154b724d7f1
@@ -4246,13 +4227,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimalistic-assert@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "minimalistic-assert@npm:1.0.1"
-  checksum: cc7974a9268fbf130fb055aff76700d7e2d8be5f761fb5c60318d0ed010d839ab3661a533ad29a5d37653133385204c503bfac995aaa4236f4e847461ea32ba7
-  languageName: node
-  linkType: hard
-
 "minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.2":
   version: 3.1.2
   resolution: "minimatch@npm:3.1.2"
@@ -4513,12 +4487,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openpgp@npm:^5.11.2":
-  version: 5.11.2
-  resolution: "openpgp@npm:5.11.2"
-  dependencies:
-    asn1.js: ^5.0.0
-  checksum: 1e7627e4dc89add906cb0c1060b50dfcee40817fd425a5077b7c1abe44f5176d2433d66f1dfca0ad04f3c69bb3714f1a3afca1c578f40c436941266feecfa679
+"openpgp@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "openpgp@npm:6.1.0"
+  checksum: c45ab4d833c81174de1dfc8ef964bd0c2cbf0e1efb5f44e614daedf5a90b9433df2aae0454f4ef09769a82658c71f3a57059ecd1477db2d937e3f4607b2cfdf9
   languageName: node
   linkType: hard
 
@@ -4910,7 +4882,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safer-buffer@npm:>= 2.1.2 < 3.0.0, safer-buffer@npm:^2.1.0":
+"safer-buffer@npm:>= 2.1.2 < 3.0.0":
   version: 2.1.2
   resolution: "safer-buffer@npm:2.1.2"
   checksum: cab8f25ae6f1434abee8d80023d7e72b598cf1327164ddab31003c51215526801e40b66c5e65d658a0af1e9d6478cadcb4c745f4bd6751f97d8644786c0978b0
