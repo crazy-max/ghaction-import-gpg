@@ -1,11 +1,16 @@
 import * as openpgp from 'openpgp';
 import addressparser from 'addressparser';
 
+export interface UserId {
+  name: string;
+  email: string;
+}
+
 export interface PrivateKey {
   fingerprint: string;
   keyID: string;
-  name: string;
-  email: string;
+  primaryUserId: UserId;
+  allUserIds: UserId[];
   creationTime: Date;
 }
 
@@ -19,15 +24,20 @@ export const readPrivateKey = async (key: string): Promise<PrivateKey> => {
     armoredKey: (await isArmored(key)) ? key : Buffer.from(key, 'base64').toString()
   });
 
-  const address = await privateKey.getPrimaryUser().then(primaryUser => {
-    return addressparser(primaryUser.user.userID?.userID)[0];
+  const primaryUserId: UserId = await privateKey.getPrimaryUser().then(primaryUser => {
+    const address = addressparser(primaryUser.user.userID?.userID)[0];
+    return {name: address.name, email: address.address};
+  });
+  const allUserIds: UserId[] = privateKey.getUserIDs().map(userId => {
+    const address = addressparser(userId)[0];
+    return {name: address.name, email: address.address};
   });
 
   return {
     fingerprint: privateKey.getFingerprint().toUpperCase(),
     keyID: privateKey.getKeyID().toHex().toUpperCase(),
-    name: address.name,
-    email: address.address,
+    primaryUserId: primaryUserId,
+    allUserIds: allUserIds,
     creationTime: privateKey.getCreationTime()
   };
 };
