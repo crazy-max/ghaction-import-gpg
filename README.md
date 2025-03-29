@@ -203,7 +203,7 @@ jobs:
 
 ### inputs
 
-The following inputs can be used as `step.with` keys
+The following inputs can be used as `step.with` keys:
 
 | Name                  | Type   | Description                                                                                |
 |-----------------------|--------|--------------------------------------------------------------------------------------------|
@@ -220,14 +220,13 @@ The following inputs can be used as `step.with` keys
 | `workdir`             | String | Working directory (below repository root) (default `.`)                                    |
 | `fingerprint`         | String | Specific fingerprint to use (subkey)                                                       |
 
-> **Note**
->
+> [!NOTE]
 > `git_user_signingkey` needs to be enabled for `git_commit_gpgsign`, `git_tag_gpgsign`,
 > `git_push_gpgsign`, `git_committer_name`, `git_committer_email` inputs.
 
 ### outputs
 
-Following outputs are available
+The following outputs are available:
 
 | Name          | Type   | Description                                                                                                                     |
 |---------------|--------|---------------------------------------------------------------------------------------------------------------------------------|
