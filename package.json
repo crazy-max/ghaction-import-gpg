@@ -27,7 +27,7 @@
   "license": "MIT",
   "packageManager": "yarn@3.6.3",
   "dependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^2.0.0",
     "@actions/exec": "^1.1.1",
     "addressparser": "^1.0.1",
     "openpgp": "^6.1.0"
