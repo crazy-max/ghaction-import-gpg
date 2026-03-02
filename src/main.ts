@@ -1,9 +1,10 @@
 import * as core from '@actions/core';
-import * as context from './context';
-import * as git from './git';
-import * as gpg from './gpg';
-import * as openpgp from './openpgp';
-import * as stateHelper from './state-helper';
+
+import * as context from './context.js';
+import * as git from './git.js';
+import * as gpg from './gpg.js';
+import * as openpgp from './openpgp.js';
+import * as stateHelper from './state-helper.js';
 
 async function run(): Promise<void> {
   try {

@@ -1,5 +1,5 @@
-import * as openpgp from 'openpgp';
 import addressparser from 'addressparser';
+import * as openpgp from 'openpgp';
 
 export interface PrivateKey {
   fingerprint: string;
@@ -46,5 +46,5 @@ export const generateKeyPair = async (name: string, email: string, passphrase: s
 };
 
 export const isArmored = async (text: string): Promise<boolean> => {
-  return text.trimLeft().startsWith('---');
+  return text.trimStart().startsWith('---');
 };
