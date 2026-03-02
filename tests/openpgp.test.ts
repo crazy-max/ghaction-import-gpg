@@ -1,22 +1,17 @@
-import {describe, expect, it} from '@jest/globals';
+import {describe, expect, it} from 'vitest';
 import * as fs from 'fs';
+import * as path from 'path';
+
 import * as openpgp from '../src/openpgp';
+
+const fixturesDir = path.join(__dirname, 'fixtures');
 
 const userInfos = [
   {
     key: 'test-key',
-    pgp: fs.readFileSync('__tests__/fixtures/test-key.pgp', {
-      encoding: 'utf8',
-      flag: 'r'
-    }),
-    pgp_base64: fs.readFileSync('__tests__/fixtures/test-key-base64.pgp', {
-      encoding: 'utf8',
-      flag: 'r'
-    }),
-    passphrase: fs.readFileSync('__tests__/fixtures/test-key.pass', {
-      encoding: 'utf8',
-      flag: 'r'
-    }),
+    pgp: fs.readFileSync(path.join(fixturesDir, 'test-key.pgp'), {encoding: 'utf8', flag: 'r'}),
+    pgp_base64: fs.readFileSync(path.join(fixturesDir, 'test-key-base64.pgp'), {encoding: 'utf8', flag: 'r'}),
+    passphrase: fs.readFileSync(path.join(fixturesDir, 'test-key.pass'), {encoding: 'utf8', flag: 'r'}),
     name: 'Joe Tester',
     email: 'joe@foo.bar',
     keyID: '7D851EB72D73BDA0',
@@ -25,18 +20,9 @@ const userInfos = [
   },
   {
     key: 'test-subkey',
-    pgp: fs.readFileSync('__tests__/fixtures/test-subkey.pgp', {
-      encoding: 'utf8',
-      flag: 'r'
-    }),
-    pgp_base64: fs.readFileSync('__tests__/fixtures/test-subkey-base64.pgp', {
-      encoding: 'utf8',
-      flag: 'r'
-    }),
-    passphrase: fs.readFileSync('__tests__/fixtures/test-subkey.pass', {
-      encoding: 'utf8',
-      flag: 'r'
-    }),
+    pgp: fs.readFileSync(path.join(fixturesDir, 'test-subkey.pgp'), {encoding: 'utf8', flag: 'r'}),
+    pgp_base64: fs.readFileSync(path.join(fixturesDir, 'test-subkey-base64.pgp'), {encoding: 'utf8', flag: 'r'}),
+    passphrase: fs.readFileSync(path.join(fixturesDir, 'test-subkey.pass'), {encoding: 'utf8', flag: 'r'}),
     name: 'Joe Bar',
     email: 'joe@bar.foo',
     keyID: '6071D218380FDCC8',
@@ -46,7 +32,7 @@ const userInfos = [
 ];
 
 for (const userInfo of userInfos) {
-  // eslint-disable-next-line jest/valid-title
+  // eslint-disable-next-line vitest/valid-title
   describe(userInfo.key, () => {
     describe('readPrivateKey', () => {
       it('returns a PGP private key from an armored string', async () => {
