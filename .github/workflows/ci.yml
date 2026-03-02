@@ -64,7 +64,7 @@ jobs:
                 fs.mkdirSync(gnupgfolder);
             }
             fs.chmodSync(gnupgfolder, '0700');
-            fs.copyFile('__tests__/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
+            fs.copyFile('tests/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
                 if (err) throw err;
             });
       -
@@ -74,8 +74,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+            core.setOutput('pgp', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
         uses: ./
@@ -121,8 +121,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp-base64', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}-base64.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+            core.setOutput('pgp-base64', fs.readFileSync('tests/fixtures/${{ matrix.key }}-base64.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
         uses: ./
@@ -168,7 +168,7 @@ jobs:
                 fs.mkdirSync(gnupgfolder);
             }
             fs.chmodSync(gnupgfolder, '0700');
-            fs.copyFile('__tests__/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
+            fs.copyFile('tests/fixtures/gpg.conf', `${gnupgfolder}/gpg.conf`, (err) => {
                 if (err) throw err;
             });
       -
@@ -178,8 +178,8 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('__tests__/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+            core.setOutput('pgp', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
       -
         name: Import GPG
         id: import_gpg

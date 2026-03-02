@@ -1,8 +1,9 @@
-import * as exec from '@actions/exec';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
-import * as openpgp from './openpgp';
+import * as path from 'path';
+import * as exec from '@actions/exec';
+
+import * as openpgp from './openpgp.js';
 
 export const agentConfig = `default-cache-ttl 21600
 max-cache-ttl 31536000
