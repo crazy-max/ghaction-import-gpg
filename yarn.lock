@@ -1938,7 +1938,7 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-prettier: "npm:^5.5.5"
     globals: "npm:^17.3.0"
-    openpgp: "npm:^6.1.0"
+    openpgp: "npm:^6.3.0"
     prettier: "npm:^3.8.1"
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.0.18"
@@ -2434,10 +2434,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openpgp@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "openpgp@npm:6.1.0"
-  checksum: 10/ee8a7f005defd7c312f9ff21ed90f03734ba5cf919952b65e84fec35266ebdf7727bc27819eb32bec77824115f16827eafa74f3ddcfd5ba09db5a6f28af3ab11
+"openpgp@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "openpgp@npm:6.3.0"
+  checksum: 10/61b4819a166779c32ba8575f36da13ca28d4dc7ad366fe96b3ec7921dce97cb748ce0dbd75b3e483cbe571a338734a8b7faa79c62c35d891c30a3e583911bc02
   languageName: node
   linkType: hard
 
