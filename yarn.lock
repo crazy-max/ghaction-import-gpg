@@ -22,15 +22,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@actions/exec@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "@actions/exec@npm:1.1.1"
-  dependencies:
-    "@actions/io": "npm:^1.0.1"
-  checksum: 10/c04bd25191e522841c7e17862d70099de8db61278d2b4c744b69ac0197a48f85c75dba548e1c29c695c4cc5363d558846b4dcd3db9013463c18ba8cf36497c6d
-  languageName: node
-  linkType: hard
-
 "@actions/exec@npm:^3.0.0":
   version: 3.0.0
   resolution: "@actions/exec@npm:3.0.0"
@@ -47,13 +38,6 @@ __metadata:
     tunnel: "npm:^0.0.6"
     undici: "npm:^6.23.0"
   checksum: 10/05f606174577cae62f563361326cc81ee4c83c468dd75e87ac93f59e8d53369a6479c3fc28a4e8ea1bfbb50c8ed7db941629b5dd9f6e3855fe5f639a2ccdabc5
-  languageName: node
-  linkType: hard
-
-"@actions/io@npm:^1.0.1":
-  version: 1.0.2
-  resolution: "@actions/io@npm:1.0.2"
-  checksum: 10/37dc05e78d0eb16e9b63fc3223950713d637a0fb9b9098ccd5ab6dc1235ad81e2df2df13541d723c1f3199d72801ce3f291fd1456c553312e8d9e72e379922a0
   languageName: node
   linkType: hard
 
@@ -1915,7 +1899,7 @@ __metadata:
   resolution: "import-gpg@workspace:."
   dependencies:
     "@actions/core": "npm:^3.0.0"
-    "@actions/exec": "npm:^1.1.1"
+    "@actions/exec": "npm:^3.0.0"
     "@eslint/js": "npm:^9.39.3"
     "@types/addressparser": "npm:^1.0.3"
     "@types/node": "npm:^25.3.3"
