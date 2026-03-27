@@ -4,7 +4,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#permissions
 permissions:
   contents: read
 
@@ -18,9 +17,6 @@ on:
     tags:
       - 'v*'
   pull_request:
-    branches:
-      - 'master'
-      - 'releases/v*'
 
 jobs:
   gpg:
@@ -52,10 +48,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       -
         name: GPG conf
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const fs = require('fs');
@@ -69,13 +65,16 @@ jobs:
             });
       -
         name: Get test key and passphrase
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         id: test
+        env:
+          INPUT_KEY: ${{ matrix.key }}
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+            const inpKey = core.getInput('key');
+            core.setOutput('pgp', fs.readFileSync(`tests/fixtures/${inpKey}.pgp`, {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync(`tests/fixtures/${inpKey}.pass`, {encoding: 'utf8'}));
       -
         name: Import GPG
         uses: ./
@@ -113,16 +112,19 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       -
         name: Get test key and passphrase
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         id: test
+        env:
+          INPUT_KEY: ${{ matrix.key }}
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp-base64', fs.readFileSync('tests/fixtures/${{ matrix.key }}-base64.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+            const inpKey = core.getInput('key');
+            core.setOutput('pgp-base64', fs.readFileSync(`tests/fixtures/${inpKey}-base64.pgp`, {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync(`tests/fixtures/${inpKey}.pass`, {encoding: 'utf8'}));
       -
         name: Import GPG
         uses: ./
@@ -156,10 +158,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       -
         name: GPG conf
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           script: |
             const fs = require('fs');
@@ -173,13 +175,16 @@ jobs:
             });
       -
         name: Get test key and passphrase
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         id: test
+        env:
+          INPUT_KEY: ${{ matrix.key }}
         with:
           script: |
             const fs = require('fs');
-            core.setOutput('pgp', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pgp', {encoding: 'utf8'}));
-            core.setOutput('passphrase', fs.readFileSync('tests/fixtures/${{ matrix.key }}.pass', {encoding: 'utf8'}));
+            const inpKey = core.getInput('key');
+            core.setOutput('pgp', fs.readFileSync(`tests/fixtures/${inpKey}.pgp`, {encoding: 'utf8'}));
+            core.setOutput('passphrase', fs.readFileSync(`tests/fixtures/${inpKey}.pass`, {encoding: 'utf8'}));
       -
         name: Import GPG
         id: import_gpg
