@@ -36,7 +36,7 @@
     "@types/node": "^25.3.3",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.12",
     "@vitest/eslint-plugin": "^1.6.9",
     "esbuild": "^0.28.0",
     "eslint": "^9.39.3",
@@ -46,6 +46,6 @@
     "globals": "^17.3.0",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.12"
   }
 }
