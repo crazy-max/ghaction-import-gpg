@@ -3,7 +3,7 @@ https://www.npmjs.com/package/generate-license-file
 
 The following npm package may be included in this product:
 
- - openpgp@6.3.0
+ - openpgp@6.3.3
 
 This package contains the following license:
 
@@ -177,7 +177,7 @@ Library.
 
 The following npm package may be included in this product:
 
- - @actions/http-client@4.0.0
+ - @actions/http-client@4.0.1
 
 This package contains the following license:
 
@@ -232,7 +232,17 @@ SOFTWARE.
 
 The following npm package may be included in this product:
 
- - undici@6.23.0
+ - eckey-utils@0.7.14
+
+This package contains the following license:
+
+ISC
+
+-----------
+
+The following npm package may be included in this product:
+
+ - undici@6.29.1
 
 This package contains the following license:
 
@@ -292,7 +302,7 @@ THE SOFTWARE.
 
 The following npm packages may be included in this product:
 
- - @actions/core@3.0.0
+ - @actions/core@3.0.1
  - @actions/exec@3.0.0
  - @actions/io@3.0.2
 
